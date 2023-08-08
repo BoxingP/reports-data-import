@@ -2,6 +2,7 @@ import allure
 
 from pages.locators import ReportPageLocators
 from pages.page import Page
+from utils.config import config
 from utils.logger import _step
 
 
@@ -20,4 +21,4 @@ class ReportPage(Page):
         self.click(*self.locator.export_excel_option)
         self.click(*self.locator.export_wait_button)
         self.click(*self.locator.download_button)
-        self.wait_file_presence("C:\\Users\\boxing.peng\\Downloads\\cmdb_ci_computer.xlsx")
+        self.wait_file_presence(fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}\cmdb_ci_computer.xlsx')

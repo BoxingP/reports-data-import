@@ -6,6 +6,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
+from utils.config import config
+
 
 class DriverFactory(object):
     CHROME_OPTIONS = [
@@ -41,6 +43,10 @@ class DriverFactory(object):
             options = webdriver.FirefoxOptions()
             for option in DriverFactory.FIREFOX_OPTIONS:
                 options.add_argument(option)
+            options.set_preference('browser.download.folderList', 2)
+            options.set_preference('browser.download.manager.showWhenStarting', False)
+            options.set_preference('browser.download.dir', fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}')
+            options.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif browser == 'edge':
             options = webdriver.EdgeOptions()
             for option in DriverFactory.EDGE_OPTIONS:

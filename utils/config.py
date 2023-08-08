@@ -11,11 +11,14 @@ class Config(object):
                                          cast=lambda x: x.split(','))
     logs_dir = decouple_config('LOGS_DIR', default='tmp,logs', cast=lambda x: x.split(','))
     screenshots_dir = decouple_config('SCREENSHOTS_DIR', default='tmp,screenshots', cast=lambda x: x.split(','))
+    browser_download_dir = decouple_config('BROWSER_DOWNLOAD_DIR', default='tmp,sn-reports',
+                                           cast=lambda x: x.split(','))
     root_path = Path('/')
     ALLURE_RESULTS_DIR_PATH = Path(root_path, *allure_results_dir).resolve()
     logs_dir_path = Path(root_path, *logs_dir).resolve()
     SCREENSHOTS_DIR_PATH = Path(root_path, *screenshots_dir).resolve()
-    for path in [ALLURE_RESULTS_DIR_PATH, logs_dir_path, SCREENSHOTS_DIR_PATH]:
+    BROWSER_DOWNLOAD_DIR_PATH = Path(root_path, *browser_download_dir).resolve()
+    for path in [ALLURE_RESULTS_DIR_PATH, logs_dir_path, SCREENSHOTS_DIR_PATH, BROWSER_DOWNLOAD_DIR_PATH]:
         if not os.path.exists(path):
             os.makedirs(path)
     logs_file = decouple_config('LOG_FILE', default='steps.log')
