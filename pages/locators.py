@@ -28,5 +28,4 @@ class ReportPageLocators(PageLocators):
     export_option = (By.XPATH, '/html/body/div[6]/div[13]')
     export_excel_option = (By.XPATH, '/html/body/div[8]/div[2]')
     export_wait_button = (By.ID, 'export_wait')
-    export_progress_bar = (By.ID, 'poll_text')
     download_button = (By.ID, 'download_button')

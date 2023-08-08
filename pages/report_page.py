@@ -19,6 +19,5 @@ class ReportPage(Page):
         self.hover(*self.locator.export_option)
         self.click(*self.locator.export_excel_option)
         self.click(*self.locator.export_wait_button)
-        self.wait_text_to_be_display('Export Complete', *self.locator.export_progress_bar)
         self.click(*self.locator.download_button)
         self.wait_file_presence("C:\\Users\\boxing.peng\\Downloads\\cmdb_ci_computer.xlsx")
