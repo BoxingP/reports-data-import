@@ -30,7 +30,7 @@ class Config(object):
     JOB_RERUNS_DELAY = decouple_config('JOB_RERUNS_DELAY', default=0, cast=int)
     BROWSER_LIST = decouple_config('BROWSER_LIST', default='chrome,edge,firefox', cast=lambda x: x.split(','))
     BROWSER_HEADLESS_MODE = decouple_config('BROWSER_HEADLESS_MODE', default=True, cast=bool)
-    BROWSER_TIMEOUT = decouple_config('BROWSER_TIMEOUT', default=120, cast=int)
+    BROWSER_TIMEOUT = decouple_config('BROWSER_TIMEOUT', default=140, cast=int)
     SLEEP_TIME_UPPER_LIMIT_RANGE = decouple_config('SLEEP_TIME_UPPER_LIMIT_RANGE', default='60,120',
                                                    cast=lambda x: tuple(int(val) for val in x.split(',')))
     USERS = decouple_config('USERS', cast=lambda x: json.loads(x))
