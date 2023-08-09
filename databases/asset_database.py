@@ -5,13 +5,13 @@ class AssetDatabase(Database):
     def __init__(self):
         super(AssetDatabase, self).__init__()
 
-    def import_data(self, table_name, dataframe, is_truncate=False):
+    def import_data(self, table_class, dataframe, is_truncate=False):
         if is_truncate:
-            self.truncate_table(table_name)
+            self.truncate_table(table_class.__tablename__)
         column_mapping = {
             'Name': 'name',
             'Manufacturer': 'manufacturer',
-            'Class': 'class',
+            'Class': 'class_',
             'Serial number': 'serial_number',
             'Operating System': 'operating_system',
             'OS Version': 'os_version',
@@ -35,4 +35,4 @@ class AssetDatabase(Database):
         }
         dataframe = dataframe.rename(columns=column_mapping)
         dataframe['updated_by'] = 'Updated By Script'
-        dataframe.to_sql(table_name, con=self.session.bind, if_exists='append', index=False)
+        dataframe.to_sql(table_class.__tablename__, con=self.session.bind, if_exists='append', index=False)

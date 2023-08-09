@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker
 
 from utils.config import config
@@ -11,6 +11,11 @@ class Database(object):
         engine = create_engine(config.DB_URI, echo=False)
         Session.configure(bind=engine)
         self.session = Session()
+
+    def create_table_if_not_exists(self, table_class):
+        inspector = inspect(self.session.bind)
+        if not inspector.has_table(table_class.__tablename__):
+            table_class.__table__.create(self.session.bind)
 
     def truncate_table(self, table_name):
         truncate_query = text(f'TRUNCATE TABLE {table_name}')
