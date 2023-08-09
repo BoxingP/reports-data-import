@@ -9,3 +9,5 @@ webdriver-manager~=3.8.5
 APScheduler~=3.10.1
 pytz~=2023.3
 python-decouple~=3.8
+SQLAlchemy~=2.0.18
+pandas~=2.0.0

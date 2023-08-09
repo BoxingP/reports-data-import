@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 from decouple import config as decouple_config
 
@@ -33,6 +34,13 @@ class Config(object):
     SLEEP_TIME_UPPER_LIMIT_RANGE = decouple_config('SLEEP_TIME_UPPER_LIMIT_RANGE', default='60,120',
                                                    cast=lambda x: tuple(int(val) for val in x.split(',')))
     USERS = decouple_config('USERS', cast=lambda x: json.loads(x))
+    adapter = decouple_config('DATABASE_ADAPTER')
+    host = decouple_config('DATABASE_HOST')
+    port = decouple_config('DATABASE_PORT')
+    database = decouple_config('DATABASE_DATABASE')
+    user = decouple_config('DATABASE_USER')
+    password = decouple_config('DATABASE_PASSWORD')
+    DB_URI = f'{adapter}://{user}:%s@{host}:{port}/{database}' % quote(password)
 
 
 config = Config()
