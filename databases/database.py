@@ -8,9 +8,20 @@ Session = sessionmaker()
 
 class Database(object):
     def __init__(self):
-        engine = create_engine(config.DB_URI, echo=False)
+        self.database_name = config.DB
+        self.create_database_if_not_exists(f'{config.DB_URI_WITHOUT_DB}/postgres')
+        self.db_uri = f'{config.DB_URI_WITHOUT_DB}/{self.database_name}'
+        engine = create_engine(self.db_uri, echo=False)
         Session.configure(bind=engine)
         self.session = Session()
+
+    def create_database_if_not_exists(self, db_uri_without_db):
+        engine_without_db = create_engine(db_uri_without_db, echo=False, isolation_level="AUTOCOMMIT")
+        conn = engine_without_db.connect()
+        db_exists = conn.execute(text(f"SELECT 1 FROM pg_database WHERE datname = '{self.database_name}'")).fetchone()
+        if not db_exists:
+            conn.execute(text(f"CREATE DATABASE {self.database_name}"))
+        conn.close()
 
     def create_table_if_not_exists(self, table_class):
         inspector = inspect(self.session.bind)

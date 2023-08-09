@@ -37,10 +37,10 @@ class Config(object):
     adapter = decouple_config('DATABASE_ADAPTER')
     host = decouple_config('DATABASE_HOST')
     port = decouple_config('DATABASE_PORT')
-    database = decouple_config('DATABASE_DATABASE')
+    DB = decouple_config('DATABASE_DATABASE')
     user = decouple_config('DATABASE_USER')
     password = decouple_config('DATABASE_PASSWORD')
-    DB_URI = f'{adapter}://{user}:%s@{host}:{port}/{database}' % quote(password)
+    DB_URI_WITHOUT_DB = f'{adapter}://{user}:%s@{host}:{port}' % quote(password)
 
 
 config = Config()
