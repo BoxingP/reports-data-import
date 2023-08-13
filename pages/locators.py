@@ -27,5 +27,6 @@ class ReportPageLocators(PageLocators):
                            '/html/body/div[2]/div[1]/div/article/div[5]/section/div/div[1]/div[2]/span/div/div[2]/table/tbody/tr/td/div/table/thead/tr/th[3]/span/span/a')
     export_option = (By.XPATH, '/html/body/div[6]/div[13]')
     export_excel_option = (By.XPATH, '/html/body/div[8]/div[2]')
+    export_json_option = (By.XPATH, '/html/body/div[8]/div[4]')
     export_wait_button = (By.ID, 'export_wait')
     download_button = (By.ID, 'download_button')

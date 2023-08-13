@@ -33,3 +33,12 @@ class CMDBComputer(Base):
     site_code = Column(String(50))
     updated_by = Column(String(50))
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
+
+
+class MappingTable(Base):
+    __tablename__ = 'serial_sys_mapping'
+
+    sys_id = Column(String(100), primary_key=True)
+    serial_number = Column(String(100))
+    updated_by = Column(String(50))
+    updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))

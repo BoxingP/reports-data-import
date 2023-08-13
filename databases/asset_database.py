@@ -5,7 +5,7 @@ class AssetDatabase(Database):
     def __init__(self):
         super(AssetDatabase, self).__init__()
 
-    def import_data(self, table_class, dataframe, is_truncate=False):
+    def import_excel_data(self, table_class, dataframe, is_truncate=False):
         if is_truncate:
             self.truncate_table(table_class.__tablename__)
         column_mapping = {
@@ -36,3 +36,14 @@ class AssetDatabase(Database):
         dataframe = dataframe.rename(columns=column_mapping)
         dataframe['updated_by'] = 'Updated By Script'
         dataframe.to_sql(table_class.__tablename__, con=self.session.bind, if_exists='append', index=False)
+
+    def import_json_data(self, table_class, json):
+        for record in json['records']:
+            mapping = table_class(
+                sys_id=record['sys_id'],
+                serial_number=record['serial_number'],
+                updated_by='Updated By Script'
+            )
+            self.session.merge(mapping)
+        self.session.commit()
+        self.session.close()

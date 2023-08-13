@@ -16,8 +16,8 @@ class TestSiteCrawler:
 
     @pytest.mark.usefixtures('screenshot_on_failure')
     @pytest.mark.flaky(reruns=reruns, reruns_delay=reruns_delay)
-    @allure.title('Login test')
-    @allure.description('This is test of login')
+    @allure.title('Download report test')
+    @allure.description('This is test of download report')
     def test_download_report(self):
         base_url = get_base_url_by_job_name(config.JOB_LIST, get_current_function_name())
         home_page = Page(self.driver, base_url)
@@ -25,4 +25,5 @@ class TestSiteCrawler:
         login_page = LoginPage(self.driver, base_url)
         login_page.login('general')
         report_page = ReportPage(self.driver, base_url)
-        report_page.download_report('2d4f0fff1b987d580815a712604bcbca')
+        report_page.download_report('2d4f0fff1b987d580815a712604bcbca', 'excel')
+        report_page.download_report('2d4f0fff1b987d580815a712604bcbca', 'json')
