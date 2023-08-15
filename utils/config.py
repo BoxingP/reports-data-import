@@ -41,6 +41,13 @@ class Config(object):
     user = decouple_config('DATABASE_USER')
     password = decouple_config('DATABASE_PASSWORD')
     DB_URI_WITHOUT_DB = f'{adapter}://{user}:%s@{host}:{port}' % quote(password)
+    report_dir_path = Path(root_path, *decouple_config('REPORT_FOLDER', cast=lambda x: x.split(','))).resolve()
+    ASSET_REPORT_FILE_PATH = Path(report_dir_path, decouple_config('ASSET_REPORT'))
+    ASSET_REPORT_SHEET = decouple_config('ASSET_REPORT_SHEET')
+    EMPLOYEE_REPORT_FILE_PATH = Path(report_dir_path, decouple_config('EMPLOYEE_REPORT'))
+    EMPLOYEE_REPORT_SHEET = decouple_config('EMPLOYEE_REPORT_SHEET')
+    TEMP_REPORT_FILE_PATH = Path(report_dir_path, decouple_config('TEMP_REPORT'))
+    TEMP_REPORT_SHEET = decouple_config('TEMP_REPORT_SHEET')
 
 
 config = Config()
