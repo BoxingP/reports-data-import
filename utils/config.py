@@ -7,6 +7,15 @@ from urllib.parse import quote
 from decouple import config as decouple_config
 
 
+def set_columns_as_str(columns, dtype=str):
+    columns_list = columns.split(',') if columns else []
+    dtype_dict = {}
+    if columns_list:
+        for column in columns_list:
+            dtype_dict[column] = dtype
+    return dtype_dict
+
+
 class Config(object):
     allure_results_dir = decouple_config('ALLURE_RESULTS_DIR', default='tmp,allure-results',
                                          cast=lambda x: x.split(','))
@@ -19,7 +28,10 @@ class Config(object):
     logs_dir_path = Path(root_path, *logs_dir).resolve()
     SCREENSHOTS_DIR_PATH = Path(root_path, *screenshots_dir).resolve()
     BROWSER_DOWNLOAD_DIR_PATH = Path(root_path, *browser_download_dir).resolve()
-    for path in [ALLURE_RESULTS_DIR_PATH, logs_dir_path, SCREENSHOTS_DIR_PATH, BROWSER_DOWNLOAD_DIR_PATH]:
+    output_dir = decouple_config('OUTPUT_DIR', default='tmp,excel-reports,output', cast=lambda x: x.split(','))
+    OUTPUT_DIR_PATH = Path(root_path, *output_dir).resolve()
+    for path in [ALLURE_RESULTS_DIR_PATH, logs_dir_path, SCREENSHOTS_DIR_PATH, BROWSER_DOWNLOAD_DIR_PATH,
+                 OUTPUT_DIR_PATH]:
         if not os.path.exists(path):
             os.makedirs(path)
     logs_file = decouple_config('LOG_FILE', default='steps.log')
@@ -44,6 +56,10 @@ class Config(object):
     report_dir_path = Path(root_path, *decouple_config('REPORT_FOLDER', cast=lambda x: x.split(','))).resolve()
     ASSET_REPORT_FILE_PATH = Path(report_dir_path, decouple_config('ASSET_REPORT'))
     ASSET_REPORT_SHEET = decouple_config('ASSET_REPORT_SHEET')
+    ASSET_REPORT_STATE_COLUMN = decouple_config('ASSET_REPORT_STATE_COLUMN', default='状态')
+    ASSET_REPORT_EMP_EMAIL_COLUMN = decouple_config('ASSET_REPORT_EMP_EMAIL_COLUMN', default='员工邮箱')
+    ASSET_REPORT_SN_COLUMN = decouple_config('ASSET_REPORT_SN_COLUMN', default='SN号')
+    ASSET_REPORT_STR_COLUMNS = set_columns_as_str(decouple_config('ASSET_REPORT_STR_COLUMNS'))
     EMPLOYEE_REPORT_FILE_PATH = Path(report_dir_path, decouple_config('EMPLOYEE_REPORT'))
     EMPLOYEE_REPORT_SHEET = decouple_config('EMPLOYEE_REPORT_SHEET')
     TEMP_REPORT_FILE_PATH = Path(report_dir_path, decouple_config('TEMP_REPORT'))

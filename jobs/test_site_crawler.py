@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from pages.locators import LoginPageLocators
+from pages.locators import LoginPageLocators, HomePageLocators
 from pages.login_page import LoginPage
 from pages.page import Page
 from pages.report_page import ReportPage
@@ -16,14 +16,14 @@ class TestSiteCrawler:
 
     @pytest.mark.usefixtures('screenshot_on_failure')
     @pytest.mark.flaky(reruns=reruns, reruns_delay=reruns_delay)
-    @allure.title('Download report test')
-    @allure.description('This is test of download report')
-    def test_download_report(self):
+    @allure.title('Download sn report test')
+    @allure.description('This is test of download sn report')
+    def test_download_sn_report(self):
         base_url = get_base_url_by_job_name(config.JOB_LIST, get_current_function_name())
         home_page = Page(self.driver, base_url)
-        home_page.open_page(wait_element=LoginPageLocators.logo_img)
+        home_page.open_page(wait_element=LoginPageLocators.tmo_logo_img)
         login_page = LoginPage(self.driver, base_url)
-        login_page.login('general')
+        login_page.login(user='sn', wait_element=HomePageLocators.sn_user_info_dropdown_button)
         report_page = ReportPage(self.driver, base_url)
         report_page.download_report('2d4f0fff1b987d580815a712604bcbca', 'excel')
         report_page.download_report('2d4f0fff1b987d580815a712604bcbca', 'json')

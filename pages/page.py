@@ -141,6 +141,11 @@ class Page(object):
             print(f'\n * FRAME NOT VISIBLE WITHIN {self.timeout} SECONDS! --> {locator[1]}')
             Screenshot.take_screenshot(self.driver, f'{locator[1]} not found')
 
+    def wait_element_to_be_visible_in_frame(self, frame_locator, element_locator):
+        frame = self.find_element(*frame_locator)
+        self.driver.switch_to.frame(frame)
+        self.wait_element_to_be_visible(*element_locator)
+
     def wait_file_presence(self, file_path):
         try:
             WebDriverWait(self.driver, timeout=self.timeout).until(lambda driver: os.path.exists(file_path))

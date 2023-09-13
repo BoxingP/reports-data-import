@@ -7,11 +7,12 @@ class PageLocators(object):
 
 
 class HomePageLocators(PageLocators):
-    user_info_dropdown_button = (By.ID, 'user_info_dropdown')
+    sn_user_info_dropdown_button = (By.ID, 'user_info_dropdown')
+    msft_user_info_button = (By.ID, '_weave_e_22')
 
 
 class LoginPageLocators(PageLocators):
-    logo_img = (By.ID, 'bannerLogo')
+    tmo_logo_img = (By.ID, 'bannerLogo')
     username_field = (By.ID, 'i0116')
     next_button = (By.ID, 'idSIButton9')
     sso_logo_img = (By.XPATH, '/html/body/div[1]/div/div[1]/div/img')
@@ -19,6 +20,7 @@ class LoginPageLocators(PageLocators):
     sso_password_field = (By.XPATH, '//*[@id="passwordForm"]/div[3]/div/input')
     sso_username_next_button = (By.XPATH, '//*[@id="usernameForm"]/div[4]/button')
     sso_password_next_button = (By.XPATH, '//*[@id="passwordForm"]/div[4]/button')
+    msft_logo_img = (By.XPATH, '//*[@id="lightbox"]/div[2]/img')
 
 
 class ReportPageLocators(PageLocators):
@@ -30,3 +32,8 @@ class ReportPageLocators(PageLocators):
     export_json_option = (By.XPATH, '//div[contains(text(), "JSON")]')
     export_wait_button = (By.ID, 'export_wait')
     download_button = (By.ID, 'download_button')
+
+
+class SearchPageLocators(PageLocators):
+    devices_list = (By.ID, '_react_frame_1')
+    search_field = (By.ID, 'SearchBox5')
