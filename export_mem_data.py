@@ -1,7 +1,6 @@
 import datetime
 import random
 import time
-from pathlib import Path
 from urllib.parse import quote
 
 import pandas as pd
@@ -83,7 +82,7 @@ def main():
             asset_info.extend(parse_result(result))
     df = pd.DataFrame(asset_info)
 
-    with pd.ExcelWriter(Path(config.OUTPUT_DIR_PATH, 'mem_report.xlsx'), engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(config.MEM_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
         export_dataframe_to_excel(writer, df, 'List')
 
 
