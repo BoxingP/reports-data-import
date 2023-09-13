@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-class CMDBComputer(Base):
+class Computer(Base):
     __tablename__ = 'cmdb_ci_computer'
 
     id = Column(Integer, primary_key=True)
@@ -16,8 +16,8 @@ class CMDBComputer(Base):
     os_version = Column(String(100))
     city = Column(String(100))
     user_id = Column(String(100))
-    is_active = Column(Boolean)
-    is_vip = Column(Boolean)
+    active = Column(Boolean)
+    vip = Column(Boolean)
     title = Column(String(100))
     last_login_time = Column(TIMESTAMP)
     mobile_phone = Column(String(100))
@@ -29,14 +29,14 @@ class CMDBComputer(Base):
     last_logged_user = Column(String(100))
     last_logged_in_user = Column(String(100))
     location = Column(String(100))
-    city_location = Column(String(100))
+    city_1 = Column(String(100))
     site_code = Column(String(50))
     updated_by = Column(String(50))
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
 
 
-class MappingTable(Base):
-    __tablename__ = 'serial_sys_mapping'
+class ComputerSysMappingTable(Base):
+    __tablename__ = 'cmdb_ci_computer_sys_mapping'
 
     sys_id = Column(String(100), primary_key=True)
     serial_number = Column(String(100))

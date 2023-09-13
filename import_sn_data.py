@@ -1,14 +1,15 @@
 import json
 from pathlib import Path
 
+import openpyxl
 import pandas as pd
 
 from databases.asset_database import AssetDatabase
-from databases.models import CMDBComputer, MappingTable
+from databases.models import Computer, ComputerSysMappingTable
 from utils.config import config
 
 
-def import_json_data(file, database):
+def import_computer_sys_mapping_data(file, database):
     with open(file, 'r', encoding='UTF-8') as file:
         json_data = json.load(file)
     new_json_data = {'records': []}
@@ -18,24 +19,36 @@ def import_json_data(file, database):
             'sys_id': record['sys_id']
         }
         new_json_data['records'].append(new_record)
-    database.create_table_if_not_exists(MappingTable)
-    database.import_json_data(MappingTable, new_json_data)
+    database.create_table_if_not_exists(ComputerSysMappingTable)
+    database.import_sn_asset_sys_mapping_data(ComputerSysMappingTable, new_json_data)
 
 
-def import_excel_data(file, database):
+def get_visible_sheet_name(excel_file):
+    sheets = openpyxl.load_workbook(excel_file, read_only=True).worksheets
+    visible_sheets = []
+    for sheet in sheets:
+        if sheet.sheet_state != 'hidden':
+            visible_sheets.append(sheet.title)
+    if len(visible_sheets) != 1:
+        raise Exception(f'{excel_file}: the excel file should contain only one visible sheet')
+    return visible_sheets[0]
+
+
+def import_computer_data(file, database):
     excel_file = pd.ExcelFile(file)
-    df = pd.read_excel(excel_file, sheet_name='Page 1')
-    database.create_table_if_not_exists(CMDBComputer)
-    database.import_excel_data(CMDBComputer, df, is_truncate=True)
+    visible_sheet_name = get_visible_sheet_name(excel_file)
+    df = pd.read_excel(excel_file, sheet_name=visible_sheet_name)
+    database.create_table_if_not_exists(Computer)
+    database.import_sn_asset_data(Computer, df, is_truncate=True)
 
 
 def main():
     report_folder_path = config.BROWSER_DOWNLOAD_DIR_PATH
     asset_db = AssetDatabase()
     excel_file = Path(report_folder_path, 'cmdb_ci_computer.xlsx')
-    import_excel_data(excel_file, asset_db)
+    import_computer_data(excel_file, asset_db)
     json_file = Path(report_folder_path, 'cmdb_ci_computer.json')
-    import_json_data(json_file, asset_db)
+    import_computer_sys_mapping_data(json_file, asset_db)
 
 
 if __name__ == '__main__':
