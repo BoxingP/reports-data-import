@@ -20,6 +20,7 @@ class ReportPage(Page):
         self.open_page(url=f'sys_report_template.do?jvar_report_id={report_id}',
                        wait_element=ReportPageLocators.report_title)
         self.right_click(*self.locator.report_header_arrow)
+        self.wait_element_to_be_visible(*self.locator.export_option)
         self.hover(*self.locator.export_option)
         if report_type == 'excel':
             self.click(*self.locator.export_excel_option)
@@ -29,7 +30,6 @@ class ReportPage(Page):
         self.click(*self.locator.download_button)
         self.wait_for_download_completion(config.BROWSER_DOWNLOAD_DIR_PATH)
         if report_type == 'excel':
-
             self.wait_file_presence(fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}\cmdb_ci_computer.xlsx')
         elif report_type == 'json':
             self.wait_file_presence(fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}\cmdb_ci_computer.json')

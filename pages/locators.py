@@ -22,11 +22,11 @@ class LoginPageLocators(PageLocators):
 
 
 class ReportPageLocators(PageLocators):
-    report_title = (By.XPATH, '//*[@id="report-container-builder"]/div[1]')
+    report_title = (By.XPATH, '//*[@id="report-container-builder"]/div[@class="list-title"]')
     report_header_arrow = (By.XPATH,
-                           '/html/body/div[2]/div[1]/div/article/div[5]/section/div/div[1]/div[2]/span/div/div[2]/table/tbody/tr/td/div/table/thead/tr/th[3]/span/span/a')
-    export_option = (By.XPATH, '/html/body/div[6]/div[13]')
-    export_excel_option = (By.XPATH, '/html/body/div[8]/div[2]')
-    export_json_option = (By.XPATH, '/html/body/div[8]/div[4]')
+                           '//a[contains(text(), "Name")]/ancestor::tr[1]//a/i[contains(@class, "icon-vcr-up") or contains(@class, "icon-vcr-down")]/parent::a')
+    export_option = (By.XPATH, '//div[contains(text(), "Export")]')
+    export_excel_option = (By.XPATH, '//div[contains(text(), "Excel (.xlsx)")]')
+    export_json_option = (By.XPATH, '//div[contains(text(), "JSON")]')
     export_wait_button = (By.ID, 'export_wait')
     download_button = (By.ID, 'download_button')

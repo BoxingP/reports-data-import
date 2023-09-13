@@ -39,6 +39,12 @@ class DriverFactory(object):
             options = webdriver.ChromeOptions()
             for option in DriverFactory.CHROME_OPTIONS:
                 options.add_argument(option)
+            prefs = {
+                'download.default_directory': fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}',
+                'download.directory_upgrade': True,
+                'download.prompt_for_download': False
+            }
+            options.add_experimental_option('prefs', prefs)
         elif browser == 'firefox':
             options = webdriver.FirefoxOptions()
             for option in DriverFactory.FIREFOX_OPTIONS:
@@ -51,6 +57,12 @@ class DriverFactory(object):
             options = webdriver.EdgeOptions()
             for option in DriverFactory.EDGE_OPTIONS:
                 options.add_argument(option)
+            prefs = {
+                'download.default_directory': fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}',
+                'download.directory_upgrade': True,
+                'download.prompt_for_download': False
+            }
+            options.add_experimental_option('prefs', prefs)
         for option in DriverFactory.COMMON_OPTIONS:
             options.add_argument(option)
         if headless_mode:
