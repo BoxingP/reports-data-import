@@ -3,6 +3,7 @@ import random
 import time
 from urllib.parse import quote
 
+import numpy as np
 import pandas as pd
 import pytz
 import wcwidth
@@ -60,12 +61,27 @@ def export_dataframe_to_excel(writer, dataframe, sheet_name):
         worksheet.write(0, col_idx, col_name, header_format)
 
 
+def get_emp_email_list(dataframe, email_column):
+    dataframe[email_column] = dataframe[email_column].str.lower()
+    dataframe[email_column] = dataframe[email_column].str.strip()
+    emails = dataframe[email_column][~dataframe[email_column].isin(['', np.nan])].unique()
+    return emails.tolist()
+
+
+def get_sn_list(dataframe, sn_column):
+    dataframe[sn_column] = dataframe[sn_column].str.strip()
+    filtered_df = dataframe[dataframe[sn_column].str.match(r'^[A-Za-z0-9\s\-_]+$')]
+    filtered_df = filtered_df[~filtered_df[sn_column].str.lower().isin(['', 'none', np.nan])]
+    sns = filtered_df[sn_column].unique()
+    return sns.tolist()
+
+
 def main():
     excel_file = pd.ExcelFile(config.ASSET_REPORT_FILE_PATH)
     df = pd.read_excel(excel_file, sheet_name=config.ASSET_REPORT_SHEET, dtype=config.ASSET_REPORT_STR_COLUMNS)
     df = filter_in_use_asset(df, config.ASSET_REPORT_STATE_COLUMN)
-    emp_email_list = df[config.ASSET_REPORT_EMP_EMAIL_COLUMN].str.lower().unique().tolist()
-    sn_list = df[config.ASSET_REPORT_SN_COLUMN].unique().tolist()
+    emp_email_list = get_emp_email_list(df, config.ASSET_REPORT_EMP_EMAIL_COLUMN)
+    sn_list = get_sn_list(df, config.ASSET_REPORT_SN_COLUMN)
     search_page = MsftAPI()
     asset_info = []
     for emp_email in emp_email_list:
