@@ -1,4 +1,5 @@
 import os
+from inspect import stack
 
 from selenium.common import NoSuchWindowException
 
@@ -8,6 +9,7 @@ from pages.login_page import LoginPage
 from pages.page import Page
 from utils.config import config
 from utils.driver_factory import DriverFactory
+from utils.logger import Logger
 from utils.random_generator import random_browser
 
 
@@ -48,6 +50,7 @@ class MsftAPI(API):
         authorization_value = search_page.get_header(self.driver,
                                                      'https://graph.microsoft.com/beta/deviceManagement',
                                                      'Authorization')
+        Logger(f'{self.__class__.__name__}.{stack()[0][3]}').info(msg=f'get authorization value: {authorization_value}')
         self.add_header('Authorization', authorization_value)
         self.driver.quit()
 
