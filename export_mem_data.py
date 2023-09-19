@@ -1,6 +1,7 @@
 import datetime
 import random
 import time
+from collections import OrderedDict
 from urllib.parse import quote
 
 import numpy as np
@@ -9,6 +10,8 @@ import pytz
 import wcwidth
 
 from apis.msft_api import MsftAPI
+from databases.asset_database import AssetDatabase
+from databases.models import Computer
 from utils.config import config
 
 
@@ -24,21 +27,19 @@ def convert_to_shanghai_time(iso_string):
     return shanghai_time_string
 
 
-def parse_result(result):
+def parse_result(result, key_mapping):
     if not result['value']:
         return []
     info = []
     for asset in result['value']:
-        info.append(
-            {
-                'device_name': asset['deviceName'],
-                'serial_nu': asset['serialNumber'],
-                'device_os': asset['deviceType'],
-                'os_version': asset['osVersion'],
-                'emp_email': asset['userPrincipalName'],
-                'last_use_time': convert_to_shanghai_time(asset['lastSyncDateTime'])
-            }
-        )
+        item = OrderedDict()
+        for result_key, desired_key in key_mapping.items():
+            if result_key in asset:
+                if result_key == 'lastSyncDateTime':
+                    item[desired_key] = convert_to_shanghai_time(asset[result_key])
+                else:
+                    item[desired_key] = asset[result_key]
+        info.append(item)
     return info
 
 
@@ -76,30 +77,56 @@ def get_sn_list(dataframe, sn_column):
     return sns.tolist()
 
 
+def elements_not_in_another_list(origin_list, another_list):
+    return [element for element in origin_list if element not in another_list]
+
+
 def main():
     excel_file = pd.ExcelFile(config.ASSET_REPORT_FILE_PATH)
     df = pd.read_excel(excel_file, sheet_name=config.ASSET_REPORT_SHEET, dtype=config.ASSET_REPORT_STR_COLUMNS)
     df = filter_in_use_asset(df, config.ASSET_REPORT_STATE_COLUMN)
     emp_email_list = get_emp_email_list(df, config.ASSET_REPORT_EMP_EMAIL_COLUMN)
     sn_list = get_sn_list(df, config.ASSET_REPORT_SN_COLUMN)
+    key_mapping = {
+        'deviceName': 'device_name',
+        'serialNumber': 'serial_nu',
+        'deviceType': 'device_os',
+        'osVersion': 'os_version',
+        'userPrincipalName': 'last_use_user',
+        'lastSyncDateTime': 'last_use_time'
+    }
+    sn_usage_columns = list(key_mapping.values())
     search_page = MsftAPI()
-    asset_info = []
+    mem_asset_info = []
     for emp_email in emp_email_list:
         time.sleep(random.uniform(1, 3))
         result = search_page.search_related_device(quote(emp_email, safe=''))
-        asset_info.extend(parse_result(result))
-    mem_sn_list = [entry['serial_nu'] for entry in asset_info]
+        mem_asset_info.extend(parse_result(result, key_mapping))
+    sn_list_in_mem_from_email = [entry['serial_nu'] for entry in mem_asset_info]
 
-    remain_sn_list = [sn for sn in sn_list if sn not in mem_sn_list]
+    remain_sn_list = elements_not_in_another_list(sn_list, another_list=sn_list_in_mem_from_email)
     if remain_sn_list:
         for sn in remain_sn_list:
             time.sleep(random.uniform(1, 3))
             result = search_page.search_related_device(quote(sn, safe=''))
-            asset_info.extend(parse_result(result))
-    df = pd.DataFrame(asset_info)
+            mem_asset_info.extend(parse_result(result, key_mapping))
+    sn_usage_in_mem = pd.DataFrame(mem_asset_info)
+    sn_usage_in_mem['got_from'] = 'mem'
 
+    sn_list_in_mem = sn_usage_in_mem['serial_nu'].tolist()
+    remain_sn_list = elements_not_in_another_list(sn_list, another_list=sn_list_in_mem)
+    sn_asset_info = []
+    asset_db = AssetDatabase()
+    for sn in remain_sn_list:
+        result = asset_db.search_sn_asset_data(Computer, sn)
+        if result is not None:
+            sn_asset_info.append(result)
+    sn_usage_in_sn = pd.DataFrame(sn_asset_info, columns=sn_usage_columns)
+    sn_usage_in_sn['got_from'] = 'sn'
+
+    sn_usage = pd.concat([sn_usage_in_mem, sn_usage_in_sn], ignore_index=True)
     with pd.ExcelWriter(config.MEM_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, df, 'List')
+        export_dataframe_to_excel(writer, sn_usage, 'List')
 
 
 if __name__ == '__main__':

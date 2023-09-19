@@ -1,6 +1,17 @@
+from contextlib import contextmanager
+
 import pandas as pd
+from sqlalchemy import func
 
 from databases.database import Database
+
+
+@contextmanager
+def database_session(session):
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 class AssetDatabase(Database):
@@ -164,3 +175,18 @@ class AssetDatabase(Database):
                 self.session.add(new_row)
 
         self.session.commit()
+
+    def search_sn_asset_data(self, table_class, search_string):
+        with database_session(self.session) as session:
+            result = session.query(table_class).filter(
+                func.lower(func.trim(table_class.serial_number)) == func.lower(search_string)).first()
+            if result:
+                name = result.name
+                serial_number = result.serial_number
+                operating_system = result.operating_system
+                os_version = result.os_version
+                last_logged_user = result.last_logged_user
+                most_recent_discovery = result.most_recent_discovery
+                return name, serial_number, operating_system, os_version, last_logged_user, most_recent_discovery
+            else:
+                return None
