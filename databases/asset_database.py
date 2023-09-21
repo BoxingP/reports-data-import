@@ -2,6 +2,7 @@ from contextlib import contextmanager
 
 import pandas as pd
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 from databases.database import Database
 
@@ -187,6 +188,34 @@ class AssetDatabase(Database):
                 os_version = result.os_version
                 last_logged_user = result.last_logged_user
                 most_recent_discovery = result.most_recent_discovery
-                return name, serial_number, operating_system, os_version, last_logged_user, most_recent_discovery
+                return {'device_name': name,
+                        'serial_nu': serial_number,
+                        'device_os': operating_system,
+                        'os_version': os_version,
+                        'last_use_user': last_logged_user,
+                        'last_use_time': most_recent_discovery}
             else:
                 return None
+
+    def update_or_insert_device_usage_data(self, table_class, data, got_from):
+        serial_nu = data['serial_nu']
+        data.update({'got_from': got_from})
+        with database_session(self.session) as session:
+            existing_record = session.query(table_class).filter_by(serial_nu=serial_nu).first()
+            if existing_record:
+                for key, value in data.items():
+                    setattr(existing_record, key, value)
+                existing_record.updated_time = func.timezone('Asia/Shanghai', func.now())
+            else:
+                new_record = table_class(**data)
+                session.add(new_record)
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+
+    def export_table_to_dataframe(self, table_class, columns_to_select):
+        with database_session(self.session) as session:
+            query = session.query(*columns_to_select).select_from(table_class)
+            df = pd.read_sql(query.statement, query.session.bind)
+            return df

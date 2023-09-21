@@ -1,7 +1,6 @@
 import datetime
 import random
 import time
-from collections import OrderedDict
 from urllib.parse import quote
 
 import numpy as np
@@ -11,7 +10,7 @@ import wcwidth
 
 from apis.msft_api import MsftAPI
 from databases.asset_database import AssetDatabase
-from databases.models import Computer
+from databases.models import Computer, DeviceUsage
 from utils.config import config
 
 
@@ -32,7 +31,7 @@ def parse_result(result, key_mapping):
         return []
     info = []
     for asset in result['value']:
-        item = OrderedDict()
+        item = {}
         for result_key, desired_key in key_mapping.items():
             if result_key in asset:
                 if result_key == 'lastSyncDateTime':
@@ -95,13 +94,18 @@ def main():
         'userPrincipalName': 'last_use_user',
         'lastSyncDateTime': 'last_use_time'
     }
-    sn_usage_columns = list(key_mapping.values())
     search_api = MsftAPI()
+    asset_db = AssetDatabase()
+    asset_db.create_table_if_not_exists(DeviceUsage)
     mem_asset_info = []
     for emp_email in emp_email_list:
         time.sleep(random.uniform(1, 3))
         result = search_api.search_related_device(quote(emp_email, safe=''))
-        mem_asset_info.extend(parse_result(result, key_mapping))
+        info = parse_result(result, key_mapping)
+        if info:
+            for item in info:
+                asset_db.update_or_insert_device_usage_data(DeviceUsage, item, 'mem')
+        mem_asset_info.extend(info)
     sn_list_in_mem_from_email = [entry['serial_nu'] for entry in mem_asset_info]
 
     remain_sn_list = elements_not_in_another_list(sn_list, another_list=sn_list_in_mem_from_email)
@@ -109,22 +113,29 @@ def main():
         for sn in remain_sn_list:
             time.sleep(random.uniform(1, 3))
             result = search_api.search_related_device(quote(sn, safe=''))
-            mem_asset_info.extend(parse_result(result, key_mapping))
-    sn_usage_in_mem = pd.DataFrame(mem_asset_info)
-    sn_usage_in_mem['got_from'] = 'mem'
+            info = parse_result(result, key_mapping)
+            if info:
+                for item in info:
+                    asset_db.update_or_insert_device_usage_data(DeviceUsage, item, 'mem')
+            mem_asset_info.extend(info)
 
-    sn_list_in_mem = sn_usage_in_mem['serial_nu'].tolist()
+    sn_list_in_mem = [entry['serial_nu'] for entry in mem_asset_info]
     remain_sn_list = elements_not_in_another_list(sn_list, another_list=sn_list_in_mem)
-    sn_asset_info = []
-    asset_db = AssetDatabase()
     for sn in remain_sn_list:
         result = asset_db.search_sn_asset_data(Computer, sn)
         if result is not None:
-            sn_asset_info.append(result)
-    sn_usage_in_sn = pd.DataFrame(sn_asset_info, columns=sn_usage_columns)
-    sn_usage_in_sn['got_from'] = 'sn'
+            asset_db.update_or_insert_device_usage_data(DeviceUsage, result, 'sn')
 
-    sn_usage = pd.concat([sn_usage_in_mem, sn_usage_in_sn], ignore_index=True)
+    columns = [
+        DeviceUsage.device_name,
+        DeviceUsage.serial_nu,
+        DeviceUsage.device_os,
+        DeviceUsage.os_version,
+        DeviceUsage.last_use_user,
+        DeviceUsage.last_use_time,
+        DeviceUsage.got_from
+    ]
+    sn_usage = asset_db.export_table_to_dataframe(DeviceUsage, columns)
     with pd.ExcelWriter(config.MEM_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
         export_dataframe_to_excel(writer, sn_usage, 'List')
 

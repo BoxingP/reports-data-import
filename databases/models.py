@@ -135,3 +135,17 @@ class EmployeeManagerMapping(Base):
     lvl2_mgr_name = Column(Text)
     updated_by = Column(String(50))
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
+
+
+class DeviceUsage(Base):
+    __tablename__ = 'device_usage'
+
+    id = Column(Integer, primary_key=True)
+    device_name = Column(Text)
+    serial_nu = Column(Text)
+    device_os = Column(Text)
+    os_version = Column(Text)
+    last_use_user = Column(Text)
+    last_use_time = Column(TIMESTAMP)
+    got_from = Column(String(10))
+    updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
