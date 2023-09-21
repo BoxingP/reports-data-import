@@ -1,16 +1,17 @@
 import os
 from inspect import stack
 
-from selenium.common import NoSuchWindowException
+from selenium.common import NoSuchWindowException, TimeoutException, NoSuchElementException
 
 from apis.api import API
-from pages.locators import LoginPageLocators, HomePageLocators, SearchPageLocators
+from pages.locators import LoginPageLocators, HomePageLocators
 from pages.login_page import LoginPage
-from pages.page import Page
+from pages.search_page import SearchPage
 from utils.config import config
 from utils.driver_factory import DriverFactory
 from utils.logger import Logger
 from utils.random_generator import random_browser
+from utils.screenshot import Screenshot
 
 
 class MsftAPI(API):
@@ -27,18 +28,18 @@ class MsftAPI(API):
         try:
             self.init_browser()
             base_url = 'https://endpoint.microsoft.com/'
-            home_page = Page(self.driver, base_url)
-            home_page.open_page(wait_element=LoginPageLocators.msft_logo_img)
+            search_page = SearchPage(self.driver, base_url)
+            search_page.open_page(wait_element=LoginPageLocators.msft_logo_img)
             login_page = LoginPage(self.driver, base_url)
             login_page.login(user='mem', wait_element=HomePageLocators.msft_user_info_button)
-            home_page.open_page(
+            search_page.open_page(
                 url='https://endpoint.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/mDMDevicesPreview',
                 is_overwrite=True)
-            home_page.wait_element_to_be_visible_in_frame(SearchPageLocators.devices_list,
-                                                          SearchPageLocators.search_field)
+            search_page.wait_devices_info_to_be_visible()
             return True
-        except NoSuchWindowException as error:
-            print(f'Error: {str(error)}')
+        except (TimeoutException, NoSuchElementException, NoSuchWindowException) as exception:
+            print(f'Exception: {str(exception)}')
+            Screenshot.take_screenshot(self.driver, '')
             self.driver.quit()
             return False
 

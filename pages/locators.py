@@ -35,5 +35,7 @@ class ReportPageLocators(PageLocators):
 
 
 class SearchPageLocators(PageLocators):
-    devices_list = (By.ID, '_react_frame_1')
-    search_field = (By.ID, 'SearchBox5')
+    devices_list = (By.XPATH, '//iframe[contains(@name, "AllManagedDevices")]')
+    search_field = (By.XPATH, '//*[@data-icon-name="Search"]/parent::div/following-sibling::input')
+    session_expired_info = (By.XPATH, '//h1[contains(text(),"Session expired")]')
+    try_again_button = (By.ID, 'error-page-content-tryagain')

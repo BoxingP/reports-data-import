@@ -96,11 +96,11 @@ def main():
         'lastSyncDateTime': 'last_use_time'
     }
     sn_usage_columns = list(key_mapping.values())
-    search_page = MsftAPI()
+    search_api = MsftAPI()
     mem_asset_info = []
     for emp_email in emp_email_list:
         time.sleep(random.uniform(1, 3))
-        result = search_page.search_related_device(quote(emp_email, safe=''))
+        result = search_api.search_related_device(quote(emp_email, safe=''))
         mem_asset_info.extend(parse_result(result, key_mapping))
     sn_list_in_mem_from_email = [entry['serial_nu'] for entry in mem_asset_info]
 
@@ -108,7 +108,7 @@ def main():
     if remain_sn_list:
         for sn in remain_sn_list:
             time.sleep(random.uniform(1, 3))
-            result = search_page.search_related_device(quote(sn, safe=''))
+            result = search_api.search_related_device(quote(sn, safe=''))
             mem_asset_info.extend(parse_result(result, key_mapping))
     sn_usage_in_mem = pd.DataFrame(mem_asset_info)
     sn_usage_in_mem['got_from'] = 'mem'
