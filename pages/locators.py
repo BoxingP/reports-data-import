@@ -39,3 +39,7 @@ class SearchPageLocators(PageLocators):
     search_field = (By.XPATH, '//*[@data-icon-name="Search"]/parent::div/following-sibling::input')
     session_expired_info = (By.XPATH, '//h1[contains(text(),"Session expired")]')
     try_again_button = (By.ID, 'error-page-content-tryagain')
+    export_button = (By.XPATH, '//span[contains(text(), "Export")]/ancestor::button[1]')
+    confirm_export_button = (By.XPATH, '//span[contains(text(), "Yes")]/ancestor::button[1]')
+    device_status_info = (By.XPATH, '//div[@role="menubar"]//div[@role="status"]/div[starts-with(@class,"screen")]')
+    device_name_field = (By.XPATH, '(//div[@data-automationid="DetailsRowFields"]/div[@role="rowheader"]/div/div/a)[1]')

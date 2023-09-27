@@ -1,10 +1,12 @@
 from contextlib import contextmanager
 
+import numpy as np
 import pandas as pd
 from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError
 
 from databases.database import Database
+from databases.models import DeviceUsage
 
 
 @contextmanager
@@ -177,45 +179,38 @@ class AssetDatabase(Database):
 
         self.session.commit()
 
-    def search_sn_asset_data(self, table_class, search_string):
-        with database_session(self.session) as session:
-            result = session.query(table_class).filter(
-                func.lower(func.trim(table_class.serial_number)) == func.lower(search_string)).first()
-            if result:
-                name = result.name
-                serial_number = result.serial_number
-                operating_system = result.operating_system
-                os_version = result.os_version
-                last_logged_user = result.last_logged_user
-                most_recent_discovery = result.most_recent_discovery
-                return {'device_name': name,
-                        'serial_nu': serial_number,
-                        'device_os': operating_system,
-                        'os_version': os_version,
-                        'last_use_user': last_logged_user,
-                        'last_use_time': most_recent_discovery}
-            else:
-                return None
-
-    def update_or_insert_device_usage_data(self, table_class, data, got_from):
-        serial_nu = data['serial_nu']
-        data.update({'got_from': got_from})
-        with database_session(self.session) as session:
-            existing_record = session.query(table_class).filter_by(serial_nu=serial_nu).first()
-            if existing_record:
-                for key, value in data.items():
-                    setattr(existing_record, key, value)
-                existing_record.updated_time = func.timezone('Asia/Shanghai', func.now())
-            else:
-                new_record = table_class(**data)
-                session.add(new_record)
-            try:
-                session.commit()
-            except IntegrityError:
-                session.rollback()
-
-    def export_table_to_dataframe(self, table_class, columns_to_select):
-        with database_session(self.session) as session:
-            query = session.query(*columns_to_select).select_from(table_class)
-            df = pd.read_sql(query.statement, query.session.bind)
-            return df
+    def update_or_insert_device_usage_data(self, dataframe):
+        df = dataframe.replace({np.nan: None, pd.NaT: None})
+        for index, row in df.iterrows():
+            with database_session(self.session) as session:
+                existing_record = session.query(DeviceUsage).filter_by(device_id=row['Device ID']).first()
+                if existing_record:
+                    existing_record.device_name = row['Device name']
+                    existing_record.managed_by = row['Managed by']
+                    existing_record.ownership = row['Ownership']
+                    existing_record.compliance = row['Compliance']
+                    existing_record.os = row['OS']
+                    existing_record.os_version = row['OS version']
+                    existing_record.last_use_user = row['Primary user UPN']
+                    existing_record.last_use_time = row['Last check-in']
+                    existing_record.serial_nu = row['Serial number']
+                    existing_record.updated_time = func.timezone('Asia/Shanghai', func.now())
+                else:
+                    new_record = DeviceUsage(
+                        device_id=row['Device ID'],
+                        device_name=row['Device name'],
+                        managed_by=row['Managed by'],
+                        ownership=row['Ownership'],
+                        compliance=row['Compliance'],
+                        os=row['OS'],
+                        os_version=row['OS version'],
+                        last_use_user=row['Primary user UPN'],
+                        last_use_time=row['Last check-in'],
+                        serial_nu=row['Serial number']
+                    )
+                    session.add(new_record)
+                try:
+                    session.commit()
+                except (DataError, IntegrityError) as error:
+                    print(f'DataError: {error}')
+                    session.rollback()

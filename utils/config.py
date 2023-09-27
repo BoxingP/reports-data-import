@@ -54,17 +54,10 @@ class Config(object):
 
     ASSET_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('ASSET_REPORT'))
     ASSET_REPORT_SHEET = decouple_config('ASSET_REPORT_SHEET')
-    ASSET_REPORT_STATE_COLUMN = decouple_config('ASSET_REPORT_STATE_COLUMN', default='状态')
-    ASSET_REPORT_EMP_EMAIL_COLUMN = decouple_config('ASSET_REPORT_EMP_EMAIL_COLUMN', default='员工邮箱')
-    ASSET_REPORT_SN_COLUMN = decouple_config('ASSET_REPORT_SN_COLUMN', default='SN号')
-    ASSET_REPORT_STR_COLUMNS = set_columns_as_str(decouple_config('ASSET_REPORT_STR_COLUMNS'))
     EMPLOYEE_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('EMPLOYEE_REPORT'))
     EMPLOYEE_REPORT_SHEET = decouple_config('EMPLOYEE_REPORT_SHEET')
     TEMP_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('TEMP_REPORT'))
     TEMP_REPORT_SHEET = decouple_config('TEMP_REPORT_SHEET')
-
-    MEM_REPORT_FILE_PATH = Path(export_report_dir_path,
-                                decouple_config('MEM_REPORT_FILE_NAME', default='mem_report.xlsx'))
 
 
 config = Config()

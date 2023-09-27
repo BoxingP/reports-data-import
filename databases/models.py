@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, func, Float, Text
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, func, Float, Text, Enum
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -140,12 +140,15 @@ class EmployeeManagerMapping(Base):
 class DeviceUsage(Base):
     __tablename__ = 'device_usage'
 
-    id = Column(Integer, primary_key=True)
-    device_name = Column(Text)
-    serial_nu = Column(Text)
-    device_os = Column(Text)
-    os_version = Column(Text)
-    last_use_user = Column(Text)
+    device_id = Column(String, primary_key=True)
+    device_name = Column(String)
+    managed_by = Column(Enum('Co-managed', 'Intune', 'Other', name='managed_by_enum'))
+    ownership = Column(Enum('Corporate', 'Personal', 'Unknown', name='ownership_enum'))
+    compliance = Column(
+        Enum('Compliant', 'ConfigManager', 'InGracePeriod', 'Noncompliant', 'Not Evaluated', name='compliance_enum'))
+    os = Column(String)
+    os_version = Column(String)
+    last_use_user = Column(String)
     last_use_time = Column(TIMESTAMP)
-    got_from = Column(String(10))
+    serial_nu = Column(String)
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))

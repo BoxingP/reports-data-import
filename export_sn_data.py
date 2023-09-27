@@ -9,12 +9,13 @@ from utils.random_generator import random_browser
 
 def main():
     jobs_to_run = get_jobs_to_run(config.JOB_LIST)
-    print(f"Running jobs: {', '.join(jobs_to_run)}")
+    sn_list = [element for element in jobs_to_run if "sn" in element]
+    print(f"Running jobs: {', '.join(sn_list)}")
     if jobs_to_run:
         random_browser()
         pytest.main(
             [f"{os.path.join(os.path.dirname(__file__), 'jobs')}", "--dist=loadfile", "--order-dependencies",
-             f"--alluredir={config.ALLURE_RESULTS_DIR_PATH}", '--cache-clear', '-k', ' or '.join(jobs_to_run), '-s']
+             f"--alluredir={config.ALLURE_RESULTS_DIR_PATH}", '--cache-clear', '-k', ' or '.join(sn_list), '-s']
         )
 
 

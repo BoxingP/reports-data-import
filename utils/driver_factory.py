@@ -1,7 +1,7 @@
+from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromiumService
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
-from seleniumwire import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
@@ -54,7 +54,8 @@ class DriverFactory(object):
             options.set_preference('browser.download.manager.showWhenStarting', False)
             options.set_preference('browser.download.dir', fr'{str(config.BROWSER_DOWNLOAD_DIR_PATH)}')
             options.set_preference('browser.helperApps.neverAsk.saveToDisk',
-                                   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                                   f'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/zip')
+            options.set_preference("browser.download.manager.showAlertOnComplete", False)
         elif browser == 'edge':
             options = webdriver.EdgeOptions()
             for option in DriverFactory.EDGE_OPTIONS:
@@ -73,23 +74,11 @@ class DriverFactory(object):
 
         driver = None
         if browser == 'chrome':
-            ignore_option = {
-                'ignore_http_methods': []
-            }
-            driver = webdriver.Chrome(service=ChromiumService(ChromeDriverManager().install()),
-                                      seleniumwire_options=ignore_option, options=options)
+            driver = webdriver.Chrome(service=ChromiumService(ChromeDriverManager().install()), options=options)
         elif browser == 'firefox':
-            ignore_option = {
-                'ignore_http_methods': []
-            }
-            driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()),
-                                       seleniumwire_options=ignore_option, options=options)
+            driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
         elif browser == 'edge':
-            ignore_option = {
-                'ignore_http_methods': []
-            }
-            driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()),
-                                    seleniumwire_options=ignore_option, options=options)
+            driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()), options=options)
 
         if driver is None:
             raise Exception('Provide valid driver name')
