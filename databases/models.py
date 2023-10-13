@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, func, Float, Text, Enum
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, func, Float, Text, Enum, VARCHAR, NVARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -152,3 +152,12 @@ class DeviceUsage(Base):
     last_use_time = Column(TIMESTAMP)
     serial_nu = Column(String)
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
+
+
+class EmployeeCollect(Base):
+    __tablename__ = 'V_EMPLOYEE_ITAsset'
+
+    employee_id = Column(VARCHAR(20), primary_key=True)
+    worker_name = Column(NVARCHAR(200))
+    email_primary_work = Column(NVARCHAR(100))
+    domainaccount = Column(NVARCHAR(200))

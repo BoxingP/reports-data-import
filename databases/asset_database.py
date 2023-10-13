@@ -2,11 +2,11 @@ from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError, DataError
 
 from databases.database import Database
-from databases.models import DeviceUsage
+from databases.models import DeviceUsage, Asset, Computer
 
 
 @contextmanager
@@ -19,7 +19,15 @@ def database_session(session):
 
 class AssetDatabase(Database):
     def __init__(self):
-        super(AssetDatabase, self).__init__()
+        super(AssetDatabase, self).__init__('asset')
+
+    def truncate_table(self, table_name, reset_pk=True):
+        truncate_query = text(f'TRUNCATE TABLE {table_name}')
+        self.session.execute(truncate_query)
+        if reset_pk:
+            reset_query = text(f"SELECT setval('{table_name}_id_seq', 1, false);")
+            self.session.execute(reset_query)
+        self.session.commit()
 
     def import_sn_asset_data(self, table_class, dataframe, is_truncate=False):
         if is_truncate:
@@ -214,3 +222,19 @@ class AssetDatabase(Database):
                 except (DataError, IntegrityError) as error:
                     print(f'DataError: {error}')
                     session.rollback()
+
+    def get_usage_info(self):
+        with database_session(self.session) as session:
+            query = session.query(
+                Asset.serial_nu,
+                func.coalesce(DeviceUsage.device_name, Computer.name).label('device_name'),
+                func.coalesce(DeviceUsage.os, Computer.operating_system).label('os'),
+                func.coalesce(DeviceUsage.os_version, Computer.os_version).label('os_version'),
+                func.coalesce(DeviceUsage.last_use_user, Computer.last_logged_user).label('last_use_user'),
+                func.coalesce(DeviceUsage.last_use_time, Computer.last_login_time).label('last_use_time')
+            ).outerjoin(
+                DeviceUsage, func.lower(func.trim(Asset.serial_nu)) == func.lower(func.trim(DeviceUsage.serial_nu))
+            ).outerjoin(
+                Computer, func.lower(func.trim(Asset.serial_nu)) == func.lower(func.trim(Computer.serial_number))
+            )
+            return query.all()

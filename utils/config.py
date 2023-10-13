@@ -2,7 +2,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from urllib.parse import quote
 
 from decouple import config as decouple_config
 
@@ -48,16 +47,15 @@ class Config(object):
                                                    cast=lambda x: tuple(int(val) for val in x.split(',')))
     USERS = decouple_config('USERS', cast=lambda x: json.loads(x))
 
-    DB = decouple_config('DATABASE_DATABASE')
-    DB_URI_WITHOUT_DB = f"{decouple_config('DATABASE_ADAPTER')}://{decouple_config('DATABASE_USER')}:%s@{decouple_config('DATABASE_HOST')}:{decouple_config('DATABASE_PORT')}" % quote(
-        decouple_config('DATABASE_PASSWORD'))
-
     ASSET_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('ASSET_REPORT'))
     ASSET_REPORT_SHEET = decouple_config('ASSET_REPORT_SHEET')
     EMPLOYEE_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('EMPLOYEE_REPORT'))
     EMPLOYEE_REPORT_SHEET = decouple_config('EMPLOYEE_REPORT_SHEET')
     TEMP_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('TEMP_REPORT'))
     TEMP_REPORT_SHEET = decouple_config('TEMP_REPORT_SHEET')
+
+    USAGE_REPORT_FILE_PATH = Path(export_report_dir_path,
+                                  decouple_config('USAGE_REPORT_FILE_NAME', default='usage_report.xlsx'))
 
 
 config = Config()
