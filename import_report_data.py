@@ -11,7 +11,7 @@ def import_emp_mgr_mapping(file, database, table_class, sheet_name):
                        dtype={'employee_id': str, 'manager_id': str, 'Manager1ID': str, 'Manager2ID': str})
     df = df.replace({pd.NA: None})
     database.create_table_if_not_exists(table_class)
-    database.import_emp_mgr_mapping_data(table_class, df)
+    database.update_or_insert_emp_mgr_mapping_data(table_class, df)
 
 
 def import_emp_info(file, database, table_class, sheet_name):
@@ -20,7 +20,7 @@ def import_emp_info(file, database, table_class, sheet_name):
                        dtype={'Employee ID': str, 'Manager 1 ID': str, 'CLT-2 Manager ID': str})
     df = df.replace({pd.NA: None})
     database.create_table_if_not_exists(table_class)
-    database.import_emp_info_data(table_class, df)
+    database.update_or_insert_emp_data(table_class, df)
 
 
 def import_asset_info(file, database, table_class, sheet_name):
@@ -31,7 +31,7 @@ def import_asset_info(file, database, table_class, sheet_name):
                               '使用期限': str})
     df = df.replace({pd.NA: None})
     database.create_table_if_not_exists(table_class)
-    database.import_asset_info_data(table_class, df)
+    database.update_or_insert_asset_data(table_class, df)
 
 
 def main():
