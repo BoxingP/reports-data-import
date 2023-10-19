@@ -43,7 +43,7 @@ def main():
     df = convert_utc_to_shanghai(df, 'Last check-in')
     asset_db = AssetDatabase()
     asset_db.create_table_if_not_exists(DeviceUsage)
-    asset_db.update_or_insert_device_usage_data(df)
+    asset_db.update_or_insert_device_usage_data(DeviceUsage, df)
 
 
 if __name__ == '__main__':

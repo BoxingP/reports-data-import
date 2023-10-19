@@ -150,6 +150,7 @@ class DeviceUsage(Base):
     last_use_user = Column(String)
     last_use_time = Column(TIMESTAMP)
     serial_nu = Column(String)
+    updated_by = Column(String)
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
 
 

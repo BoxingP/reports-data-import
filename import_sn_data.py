@@ -20,7 +20,7 @@ def import_computer_sys_mapping_data(file, database):
         }
         new_json_data['records'].append(new_record)
     database.create_table_if_not_exists(ComputerSysMappingTable)
-    database.update_or_insert_sn_asset_sys_mapping_data(ComputerSysMappingTable, new_json_data)
+    database.update_or_insert_sn_asset_sys_mapping_data(ComputerSysMappingTable, pd.DataFrame(new_json_data['records']))
 
 
 def get_visible_sheet_name(excel_file):
