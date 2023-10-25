@@ -101,39 +101,12 @@ class Asset(Base):
 
 
 class Employee(Base):
-    __tablename__ = 'employee_info'
+    __tablename__ = 'V_EMPLOYEE_ITAsset'
 
-    emp_id = Column(String, primary_key=True)
-    emp_name = Column(Text)
-    emp_email = Column(String)
-    emp_type = Column(String)
-    lvl1_mgr_id = Column(String)
-    lvl1_mgr_name = Column(Text)
-    clt = Column(String)
-    division = Column(String)
-    clt_lvl1_mgr_name = Column(Text)
-    clt_lvl2_mgr_id = Column(String)
-    clt_lvl2_mgr_name = Column(Text)
-    clt_lvl2_mgr_email = Column(String)
-    updated_by = Column(String)
-    updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
-
-
-class EmployeeManagerMapping(Base):
-    __tablename__ = 'emp_mgr_mapping'
-
-    emp_id = Column(String, primary_key=True)
-    emp_name = Column(Text)
-    job_lvl = Column(Integer)
-    term_date = Column(TIMESTAMP)
-    mgr_id = Column(String)
-    mgr_name = Column(Text)
-    lvl1_mgr_id = Column(String)
-    lvl1_mgr_name = Column(Text)
-    lvl2_mgr_id = Column(String)
-    lvl2_mgr_name = Column(Text)
-    updated_by = Column(String)
-    updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
+    employee_id = Column(VARCHAR(20), primary_key=True)
+    worker_name = Column(NVARCHAR(200))
+    email_primary_work = Column(NVARCHAR(100))
+    domainaccount = Column(NVARCHAR(500))
 
 
 class DeviceUsage(Base):
@@ -152,12 +125,3 @@ class DeviceUsage(Base):
     serial_nu = Column(String)
     updated_by = Column(String)
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
-
-
-class EmployeeCollect(Base):
-    __tablename__ = 'V_EMPLOYEE_ITAsset'
-
-    employee_id = Column(VARCHAR(20), primary_key=True)
-    worker_name = Column(NVARCHAR(200))
-    email_primary_work = Column(NVARCHAR(100))
-    domainaccount = Column(NVARCHAR(200))

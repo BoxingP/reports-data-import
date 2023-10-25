@@ -181,42 +181,6 @@ class AssetDatabase(Database):
         df = self.process_dataframe(dataframe, 'SN号', ['资产条码', '员工号'])
         self.update_or_insert_data(table_class, df, column_mapping, ignore_fields)
 
-    def update_or_insert_emp_data(self, table_class, dataframe):
-        column_mapping = {
-            'Employee ID': 'emp_id',
-            'Legal Name': 'emp_name',
-            'Email - Primary Work': 'emp_email',
-            'Manager 1 Name': 'lvl1_mgr_name',
-            'Manager 1 ID': 'lvl1_mgr_id',
-            'CLT': 'clt',
-            'Division/Dept.': 'division',
-            'CLT-1 Manager': 'clt_lvl1_mgr_name',
-            'Type': 'emp_type',
-            'CLT-2 Manager ID': 'clt_lvl2_mgr_id',
-            'CLT-2 Manager Name': 'clt_lvl2_mgr_name',
-            'CLT-2 Manager Email': 'clt_lvl2_mgr_email'
-        }
-        ignore_fields = ['updated_time']
-        df = self.process_dataframe(dataframe, 'Employee ID', ['Email - Primary Work'])
-        self.update_or_insert_data(table_class, df, column_mapping, ignore_fields)
-
-    def update_or_insert_emp_mgr_mapping_data(self, table_class, dataframe):
-        column_mapping = {
-            'employee_id': 'emp_id',
-            'worker_name': 'emp_name',
-            'band': 'job_lvl',
-            'termination_date': 'term_date',
-            'manager_id': 'mgr_id',
-            'manager_legal_name': 'mgr_name',
-            'Manager1ID': 'lvl1_mgr_id',
-            'Manager1Name': 'lvl1_mgr_name',
-            'Manager2ID': 'lvl2_mgr_id',
-            'Manager2Name': 'lvl2_mgr_name'
-        }
-        ignore_fields = ['updated_time']
-        df = self.process_dataframe(dataframe, 'employee_id', ['worker_name'])
-        self.update_or_insert_data(table_class, df, column_mapping, ignore_fields)
-
     def update_or_insert_device_usage_data(self, table_class, dataframe):
         column_mapping = {
             'Device ID': 'device_id',

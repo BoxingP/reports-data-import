@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import pandas as pd
 
 from databases.database import Database
-from databases.models import EmployeeCollect
+from databases.models import Employee
 
 
 @contextmanager
@@ -20,5 +20,5 @@ class EmployeeDatabase(Database):
 
     def get_email_domain_mapping(self):
         with database_session(self.session) as session:
-            result = session.query(EmployeeCollect.email_primary_work, EmployeeCollect.domainaccount).all()
+            result = session.query(Employee.email_primary_work, Employee.domainaccount).all()
             return pd.DataFrame(result, columns=['email', 'domain_account'])
