@@ -106,6 +106,8 @@ class Employee(Base):
     employee_id = Column(VARCHAR(20), primary_key=True)
     worker_name = Column(NVARCHAR(200))
     email_primary_work = Column(NVARCHAR(100))
+    band = Column(NVARCHAR(200))
+    manager_id = Column(VARCHAR(200))
     domainaccount = Column(NVARCHAR(500))
 
 

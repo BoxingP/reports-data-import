@@ -201,15 +201,18 @@ class AssetDatabase(Database):
     def get_usage_info(self):
         with database_session(self.session) as session:
             query = session.query(
-                Asset.serial_nu,
+                Asset.serial_nu.label('serial_nu'),
                 func.coalesce(DeviceUsage.device_name, Computer.name).label('device_name'),
                 func.coalesce(DeviceUsage.os, Computer.operating_system).label('os'),
                 func.coalesce(DeviceUsage.os_version, Computer.os_version).label('os_version'),
-                func.coalesce(DeviceUsage.last_use_user, Computer.last_logged_user).label('last_use_user'),
-                func.coalesce(DeviceUsage.last_use_time, Computer.last_login_time).label('last_use_time')
+                func.coalesce(DeviceUsage.last_use_time, Computer.last_login_time).label('last_use_time'),
+                func.coalesce(DeviceUsage.last_use_user, Computer.last_logged_user).label('last_use_employee')
             ).outerjoin(
                 DeviceUsage, func.lower(func.trim(Asset.serial_nu)) == func.lower(func.trim(DeviceUsage.serial_nu))
             ).outerjoin(
                 Computer, func.lower(func.trim(Asset.serial_nu)) == func.lower(func.trim(Computer.serial_number))
             )
-            return query.all()
+            results = pd.DataFrame(query.all())
+            results = results.replace({np.nan: None, pd.NaT: None})
+            results['serial_nu'] = results['serial_nu'].map(lambda x: x.upper() if isinstance(x, str) else x)
+            return results
