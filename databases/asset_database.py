@@ -216,3 +216,8 @@ class AssetDatabase(Database):
             results = results.replace({np.nan: None, pd.NaT: None})
             results['serial_nu'] = results['serial_nu'].map(lambda x: x.upper() if isinstance(x, str) else x)
             return results
+
+    def update_or_insert_temp_employee_manager_mapping(self, table_class, dataframe):
+        ignore_fields = ['updated_time']
+        df = dataframe.replace({np.nan: None, pd.NaT: None})
+        self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields)

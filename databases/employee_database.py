@@ -5,7 +5,7 @@ import pandas as pd
 from sqlalchemy.orm import aliased
 
 from databases.database import Database
-from databases.models import Employee
+from databases.models import Employee, TempEmployeeManagerMapping
 
 
 @contextmanager
@@ -41,4 +41,26 @@ class EmployeeDatabase(Database):
             results = results.replace({np.nan: None, pd.NaT: None})
             results = results.applymap(lambda x: x.strip().lower() if isinstance(x, str) else x)
             results.drop_duplicates(keep=False)
+            return results
+
+    def get_temp_employee_manager_mapping(self):
+        with database_session(self.session) as session:
+            employee = aliased(TempEmployeeManagerMapping, name='employee')
+            results = session.query(employee.employee_id, employee.worker_name, employee.band,
+                                    employee.termination_date,
+                                    employee.manager_id, employee.manager_legal_name, employee.Manager1ID,
+                                    employee.Manager1Name, employee.Manager2ID, employee.Manager2Name).all()
+            results = pd.DataFrame(results,
+                                   columns=['employee_id', 'employee_name', 'band', 'termination_date', 'manager_id',
+                                            'manager_name', 'lvl1_manager_id', 'lvl1_manager_name', 'lvl2_manager_id',
+                                            'lvl2_manager_name'])
+            results = results.replace({np.nan: None, pd.NaT: None})
+            return results
+
+    def get_employee_id_email_mapping(self):
+        with database_session(self.session) as session:
+            results = session.query(Employee.employee_id, Employee.email_primary_work).all()
+            results = pd.DataFrame(results, columns=['employee_id', 'employee_email'])
+            results = results.replace({np.nan: None, pd.NaT: None})
+            results = results.applymap(lambda x: x.strip().lower() if isinstance(x, str) else x)
             return results

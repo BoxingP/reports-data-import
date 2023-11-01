@@ -111,6 +111,42 @@ class Employee(Base):
     domainaccount = Column(NVARCHAR(500))
 
 
+class TempEmployeeManagerMapping(Base):
+    __tablename__ = 'V_EMPLOYEE_ITAsset_LineManager'
+
+    employee_id = Column(VARCHAR(20), primary_key=True)
+    worker_name = Column(NVARCHAR(200))
+    band = Column(NVARCHAR(200))
+    termination_date = Column(TIMESTAMP)
+    manager_id = Column(VARCHAR(200))
+    manager_legal_name = Column(NVARCHAR(200))
+    Manager1ID = Column(VARCHAR(200))
+    Manager1Name = Column(NVARCHAR(200))
+    Manager2ID = Column(VARCHAR(200))
+    Manager2Name = Column(NVARCHAR(200))
+
+
+class TempEmployee(Base):
+    __tablename__ = 'temp_employee'
+
+    employee_id = Column(String, primary_key=True)
+    employee_name = Column(String)
+    employee_email = Column(String)
+    band = Column(String)
+    termination_date = Column(TIMESTAMP)
+    manager_id = Column(String)
+    manager_name = Column(String)
+    manager_email = Column(String)
+    lvl1_manager_id = Column(String)
+    lvl1_manager_name = Column(String)
+    lvl1_manager_email = Column(String)
+    lvl2_manager_id = Column(String)
+    lvl2_manager_name = Column(String)
+    lvl2_manager_email = Column(String)
+    updated_by = Column(String)
+    updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
+
+
 class DeviceUsage(Base):
     __tablename__ = 'device_usage'
 

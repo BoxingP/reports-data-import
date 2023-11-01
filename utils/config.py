@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import sys
@@ -52,6 +53,11 @@ class Config(object):
 
     USAGE_REPORT_FILE_PATH = Path(export_report_dir_path,
                                   decouple_config('USAGE_REPORT_FILE_NAME', default='usage_report.xlsx'))
+
+    cst_now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+    TEMP_EMPLOYEE_REPORT_FILE_PATH = Path(export_report_dir_path,
+                                          decouple_config('TEMP_EMPLOYEE_REPORT_FILE_NAME',
+                                                          default=f"temp_employee_report_{cst_now.strftime('%Y%m%d')}.xlsx"))
 
 
 config = Config()
