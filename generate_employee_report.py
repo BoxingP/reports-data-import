@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import wcwidth
 
@@ -74,6 +75,7 @@ def main():
          'manager_email', 'lvl1_manager_id', 'lvl1_manager_name', 'lvl1_manager_email', 'lvl2_manager_id',
          'lvl2_manager_name', 'lvl2_manager_email'], axis=1)
     temp_employee_manager['termination_date'] = temp_employee_manager['termination_date'].apply(pd.Timestamp)
+    temp_employee_manager = temp_employee_manager.replace({np.nan: None, pd.NaT: None})
 
     import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager)
     with pd.ExcelWriter(config.TEMP_EMPLOYEE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:

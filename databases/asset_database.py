@@ -36,7 +36,8 @@ class AssetDatabase(Database):
             print(f"Skipping row with '{not_null_column}' '{item}' due to duplicate")
         return df.drop_duplicates(subset=[not_null_column], keep=False)
 
-    def update_or_insert_data(self, table_class, dataframe, column_mapping: dict = None, ignore_fields: list = None):
+    def update_or_insert_data(self, table_class, dataframe, column_mapping: dict = None, ignore_fields: list = None,
+                              check_columns: list = None):
         if column_mapping:
             dataframe.rename(columns=column_mapping, inplace=True)
         dataframe['updated_by'] = 'Updated By Script'
@@ -57,6 +58,18 @@ class AssetDatabase(Database):
 
                 if unique_key in existing_record_dict:
                     existing_record = existing_record_dict[unique_key]
+
+                    if check_columns:
+                        check_columns_match = []
+                        for key, value in record.items():
+                            if key in check_columns:
+                                if getattr(existing_record, key) == value:
+                                    check_columns_match.append(True)
+                                else:
+                                    check_columns_match.append(False)
+                        if all(check_columns_match):
+                            continue
+
                     for key, value in record.items():
                         if ignore_fields and key in ignore_fields:
                             continue
@@ -220,4 +233,7 @@ class AssetDatabase(Database):
     def update_or_insert_temp_employee_manager_mapping(self, table_class, dataframe):
         ignore_fields = ['updated_time']
         df = dataframe.replace({np.nan: None, pd.NaT: None})
-        self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields)
+        columns_list = dataframe.columns.tolist()
+        columns_list.remove(table_class.__table__.primary_key.columns.values()[0].name)
+        self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields,
+                                   check_columns=columns_list)
