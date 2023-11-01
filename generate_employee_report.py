@@ -50,30 +50,30 @@ def import_temp_employee_manager_mapping(database, table_class, dataframe):
     database.update_or_insert_temp_employee_manager_mapping(table_class, dataframe)
 
 
+def merge_and_rename_columns(dataframe, mapping_df, columns_to_rename):
+    key = columns_to_rename.get('employee_id')
+    return dataframe.merge(mapping_df.rename(columns=columns_to_rename), left_on=key, right_on=key, how='left')
+
+
 def main():
     employee_db = EmployeeDatabase()
     temp_employee_manager = employee_db.get_temp_employee_manager_mapping()
     employee_id_email = employee_db.get_employee_id_email_mapping()
 
-    temp_employee_manager = temp_employee_manager.merge(employee_id_email, left_on='employee_id',
-                                                        right_on='employee_id', how='left')
-    temp_employee_manager = temp_employee_manager.rename(columns={'employee_email': 'employee_email'})
-    manager_id_email = employee_id_email.rename(
-        columns={'employee_id': 'manager_id', 'employee_email': 'manager_email'})
-    temp_employee_manager = temp_employee_manager.merge(manager_id_email, left_on='manager_id', right_on='manager_id',
-                                                        how='left')
-    lvl1_manager_id_email = employee_id_email.rename(
-        columns={'employee_id': 'lvl1_manager_id', 'employee_email': 'lvl1_manager_email'})
-    temp_employee_manager = temp_employee_manager.merge(lvl1_manager_id_email, left_on='lvl1_manager_id',
-                                                        right_on='lvl1_manager_id', how='left')
-    lvl2_manager_id_email = employee_id_email.rename(
-        columns={'employee_id': 'lvl2_manager_id', 'employee_email': 'lvl2_manager_email'})
-    temp_employee_manager = temp_employee_manager.merge(lvl2_manager_id_email, left_on='lvl2_manager_id',
-                                                        right_on='lvl2_manager_id', how='left')
-    temp_employee_manager = temp_employee_manager.reindex(
-        ['employee_id', 'employee_name', 'employee_email', 'band', 'termination_date', 'manager_id', 'manager_name',
-         'manager_email', 'lvl1_manager_id', 'lvl1_manager_name', 'lvl1_manager_email', 'lvl2_manager_id',
-         'lvl2_manager_name', 'lvl2_manager_email'], axis=1)
+    sequence = [
+        (employee_id_email, {'employee_id': 'employee_id', 'employee_email': 'employee_email'}),
+        (employee_id_email, {'employee_id': 'manager_id', 'employee_email': 'manager_email'}),
+        (employee_id_email, {'employee_id': 'lvl1_manager_id', 'employee_email': 'lvl1_manager_email'}),
+        (employee_id_email, {'employee_id': 'lvl2_manager_id', 'employee_email': 'lvl2_manager_email'})
+    ]
+
+    for df, columns in sequence:
+        temp_employee_manager = merge_and_rename_columns(temp_employee_manager, df, columns)
+
+    column_order = ['employee_id', 'employee_name', 'employee_email', 'band', 'termination_date', 'manager_id',
+                    'manager_name', 'manager_email', 'lvl1_manager_id', 'lvl1_manager_name', 'lvl1_manager_email',
+                    'lvl2_manager_id', 'lvl2_manager_name', 'lvl2_manager_email']
+    temp_employee_manager = temp_employee_manager[column_order]
     temp_employee_manager['termination_date'] = temp_employee_manager['termination_date'].apply(pd.Timestamp)
     temp_employee_manager = temp_employee_manager.replace({np.nan: None, pd.NaT: None})
 
