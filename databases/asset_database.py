@@ -1,3 +1,4 @@
+import datetime
 from contextlib import contextmanager
 
 import numpy as np
@@ -6,7 +7,8 @@ from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 
 from databases.database import Database
-from databases.models import DeviceUsage, Asset, Computer
+from databases.models import DeviceUsage, Asset, Computer, TempEmployee
+from utils.config import config
 
 
 @contextmanager
@@ -233,7 +235,15 @@ class AssetDatabase(Database):
     def update_or_insert_temp_employee_manager_mapping(self, table_class, dataframe):
         ignore_fields = ['updated_time']
         df = dataframe.replace({np.nan: None, pd.NaT: None})
-        columns_list = dataframe.columns.tolist()
-        columns_list.remove(table_class.__table__.primary_key.columns.values()[0].name)
-        self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields,
-                                   check_columns=columns_list)
+        self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields)
+
+    def get_historical_temp_employee_manager_mapping(self, day=config.CST_NOW):
+        with database_session(self.session) as session:
+            results = session.query(TempEmployee).filter(
+                TempEmployee.updated_time >= f"{(day - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')}",
+                TempEmployee.updated_time < f"{day.strftime('%Y-%m-%d 00:00:00')}").all()
+            column_names = [col.name for col in TempEmployee.__table__.columns]
+            results = [dict(zip(column_names, [getattr(row, col) for col in column_names])) for row in results]
+            results = pd.DataFrame(results)
+            results = results.replace({np.nan: None, pd.NaT: None})
+            return results

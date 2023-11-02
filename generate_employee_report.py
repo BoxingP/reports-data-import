@@ -50,6 +50,39 @@ def import_temp_employee_manager_mapping(database, table_class, dataframe):
     database.update_or_insert_temp_employee_manager_mapping(table_class, dataframe)
 
 
+def extract_changes(updated_dataframe, origin_dataframe):
+    added_rows = updated_dataframe[~updated_dataframe['employee_id'].isin(origin_dataframe['employee_id'])]
+    with pd.ExcelWriter(config.TEMP_EMPLOYEE_ADD_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
+        export_dataframe_to_excel(writer, added_rows, 'temp_employee_info',
+                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
+                                                  'lvl2_manager_id'],
+                                  set_width_by_value=True)
+
+    deleted_rows = origin_dataframe[~origin_dataframe['employee_id'].isin(updated_dataframe['employee_id'])]
+    with pd.ExcelWriter(config.TEMP_EMPLOYEE_DELETE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
+        export_dataframe_to_excel(writer, deleted_rows, 'temp_employee_info',
+                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
+                                                  'lvl2_manager_id'],
+                                  set_width_by_value=True)
+
+    merged = origin_dataframe.merge(updated_dataframe, on='employee_id', suffixes=('_origin', '_updated'), how='inner')
+    columns_to_compare = updated_dataframe.columns.tolist()
+    columns_to_compare.remove('employee_id')
+    for column in columns_to_compare:
+        origin_column = merged[f'{column}_origin'].fillna('N/A')
+        updated_column = merged[f'{column}_updated'].fillna('N/A')
+        merged[f'{column}_changed'] = origin_column != updated_column
+    changed_columns = [col for col in merged.columns if '_changed' in col]
+    merged['any_changes'] = merged[changed_columns].any(axis=1)
+    changed_employee_ids = merged.loc[merged['any_changes'], 'employee_id'].tolist()
+    changed_rows = updated_dataframe[updated_dataframe['employee_id'].isin(changed_employee_ids)]
+    with pd.ExcelWriter(config.TEMP_EMPLOYEE_CHANGE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
+        export_dataframe_to_excel(writer, changed_rows, 'temp_employee_info',
+                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
+                                                  'lvl2_manager_id'],
+                                  set_width_by_value=True)
+
+
 def merge_and_rename_columns(dataframe, mapping_df, columns_to_rename):
     key = columns_to_rename.get('employee_id')
     return dataframe.merge(mapping_df.rename(columns=columns_to_rename), left_on=key, right_on=key, how='left')
@@ -76,6 +109,10 @@ def main():
     temp_employee_manager = temp_employee_manager[column_order]
     temp_employee_manager['termination_date'] = temp_employee_manager['termination_date'].apply(pd.Timestamp)
     temp_employee_manager = temp_employee_manager.replace({np.nan: None, pd.NaT: None})
+
+    historical_temp_employee_manager = AssetDatabase().get_historical_temp_employee_manager_mapping()
+    historical_temp_employee_manager = historical_temp_employee_manager.drop(['updated_by', 'updated_time'], axis=1)
+    extract_changes(temp_employee_manager, historical_temp_employee_manager)
 
     import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager)
     with pd.ExcelWriter(config.TEMP_EMPLOYEE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
