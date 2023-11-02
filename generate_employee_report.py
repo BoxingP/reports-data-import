@@ -6,6 +6,7 @@ from databases.asset_database import AssetDatabase
 from databases.employee_database import EmployeeDatabase
 from databases.models import TempEmployee
 from utils.config import config
+from utils.s3 import S3
 
 
 def export_dataframe_to_excel(writer, dataframe, sheet_name, string_columns: list = None, set_width_by_value=False):
@@ -120,6 +121,8 @@ def main():
                                   string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
                                                   'lvl2_manager_id'],
                                   set_width_by_value=True)
+
+    S3().upload_files_to_s3(config.EXPORT_REPORT_DIR_PATH, config.AWS_S3_DIRECTORY, del_pre_upload=True)
 
 
 if __name__ == '__main__':
