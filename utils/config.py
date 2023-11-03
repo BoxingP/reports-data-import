@@ -29,10 +29,10 @@ class Config(object):
     logs_dir_path = Path(root_path, *logs_dir).resolve()
     SCREENSHOTS_DIR_PATH = Path(root_path, *screenshots_dir).resolve()
     BROWSER_DOWNLOAD_DIR_PATH = Path(root_path, *browser_download_dir).resolve()
-    EXPORT_REPORT_DIR_PATH = Path(root_path, *export_report_dir).resolve()
+    export_report_dir_path = Path(root_path, *export_report_dir).resolve()
     import_report_dir_path = Path(root_path, *import_report_dir).resolve()
     for path in [ALLURE_RESULTS_DIR_PATH, logs_dir_path, SCREENSHOTS_DIR_PATH, BROWSER_DOWNLOAD_DIR_PATH,
-                 EXPORT_REPORT_DIR_PATH, import_report_dir_path]:
+                 export_report_dir_path, import_report_dir_path]:
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -51,23 +51,14 @@ class Config(object):
     ASSET_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('ASSET_REPORT'))
     ASSET_REPORT_SHEET = decouple_config('ASSET_REPORT_SHEET')
 
-    USAGE_REPORT_FILE_PATH = Path(EXPORT_REPORT_DIR_PATH,
+    USAGE_REPORT_FILE_PATH = Path(export_report_dir_path,
                                   decouple_config('USAGE_REPORT_FILE_NAME', default='usage_report.xlsx'))
 
     CST_NOW = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
     CST_NOW_STR = CST_NOW.strftime('%Y%m%d')
-    TEMP_EMPLOYEE_REPORT_FILE_PATH = Path(EXPORT_REPORT_DIR_PATH,
+    TEMP_EMPLOYEE_REPORT_FILE_PATH = Path(export_report_dir_path,
                                           decouple_config('TEMP_EMPLOYEE_REPORT_FILE_NAME',
                                                           default=f"temp_employee_report_{CST_NOW_STR}.xlsx"))
-    TEMP_EMPLOYEE_ADD_REPORT_FILE_PATH = Path(EXPORT_REPORT_DIR_PATH,
-                                              decouple_config('TEMP_EMPLOYEE_ADD_REPORT_FILE_NAME',
-                                                              default=f"temp_employee_add_report_{CST_NOW_STR}.xlsx"))
-    TEMP_EMPLOYEE_DELETE_REPORT_FILE_PATH = Path(EXPORT_REPORT_DIR_PATH,
-                                                 decouple_config('TEMP_EMPLOYEE_DELETE_REPORT_FILE_NAME',
-                                                                 default=f"temp_employee_delete_report_{CST_NOW_STR}.xlsx"))
-    TEMP_EMPLOYEE_CHANGE_REPORT_FILE_PATH = Path(EXPORT_REPORT_DIR_PATH,
-                                                 decouple_config('TEMP_EMPLOYEE_CHANGE_REPORT_FILE_NAME',
-                                                                 default=f"temp_employee_change_report_{CST_NOW_STR}.xlsx"))
     AWS_S3_DIRECTORY = os.path.join(decouple_config('AWS_S3_PREFIX'), CST_NOW_STR).replace('\\', '/')
 
 

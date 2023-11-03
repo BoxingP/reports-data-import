@@ -53,18 +53,8 @@ def import_temp_employee_manager_mapping(database, table_class, dataframe):
 
 def extract_changes(updated_dataframe, origin_dataframe):
     added_rows = updated_dataframe[~updated_dataframe['employee_id'].isin(origin_dataframe['employee_id'])]
-    with pd.ExcelWriter(config.TEMP_EMPLOYEE_ADD_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, added_rows, 'temp_employee_info',
-                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
-                                                  'lvl2_manager_id'],
-                                  set_width_by_value=True)
 
     deleted_rows = origin_dataframe[~origin_dataframe['employee_id'].isin(updated_dataframe['employee_id'])]
-    with pd.ExcelWriter(config.TEMP_EMPLOYEE_DELETE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, deleted_rows, 'temp_employee_info',
-                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
-                                                  'lvl2_manager_id'],
-                                  set_width_by_value=True)
 
     merged = origin_dataframe.merge(updated_dataframe, on='employee_id', suffixes=('_origin', '_updated'), how='inner')
     columns_to_compare = updated_dataframe.columns.tolist()
@@ -77,11 +67,8 @@ def extract_changes(updated_dataframe, origin_dataframe):
     merged['any_changes'] = merged[changed_columns].any(axis=1)
     changed_employee_ids = merged.loc[merged['any_changes'], 'employee_id'].tolist()
     changed_rows = updated_dataframe[updated_dataframe['employee_id'].isin(changed_employee_ids)]
-    with pd.ExcelWriter(config.TEMP_EMPLOYEE_CHANGE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, changed_rows, 'temp_employee_info',
-                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
-                                                  'lvl2_manager_id'],
-                                  set_width_by_value=True)
+
+    return added_rows, deleted_rows, changed_rows
 
 
 def merge_and_rename_columns(dataframe, mapping_df, columns_to_rename):
@@ -113,14 +100,16 @@ def main():
 
     historical_temp_employee_manager = AssetDatabase().get_historical_temp_employee_manager_mapping()
     historical_temp_employee_manager = historical_temp_employee_manager.drop(['updated_by', 'updated_time'], axis=1)
-    extract_changes(temp_employee_manager, historical_temp_employee_manager)
+    added, deleted, changed = extract_changes(temp_employee_manager, historical_temp_employee_manager)
 
     import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager)
+    columns_as_str = ['employee_id', 'band', 'manager_id', 'lvl1_manager_id', 'lvl2_manager_id']
     with pd.ExcelWriter(config.TEMP_EMPLOYEE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, temp_employee_manager, 'temp_employee_info',
-                                  string_columns=['employee_id', 'band', 'manager_id', 'lvl1_manager_id',
-                                                  'lvl2_manager_id'],
+        export_dataframe_to_excel(writer, temp_employee_manager, 'temp_employee_info', string_columns=columns_as_str,
                                   set_width_by_value=True)
+        export_dataframe_to_excel(writer, added, 'new', string_columns=columns_as_str, set_width_by_value=True)
+        export_dataframe_to_excel(writer, deleted, 'deleted', string_columns=columns_as_str, set_width_by_value=True)
+        export_dataframe_to_excel(writer, changed, 'changed', string_columns=columns_as_str, set_width_by_value=True)
 
     S3().upload_files_to_s3(config.EXPORT_REPORT_DIR_PATH, config.AWS_S3_DIRECTORY, del_pre_upload=True)
 
