@@ -14,12 +14,6 @@ class Emails(object):
     def __init__(self):
         self.smtp_server = config.SMTP_SERVER
         self.port = config.SMTP_PORT
-        self.sender_email = config.TEMP_EMPLOYEE_EMAIL_SENDER
-        self.subject = config.TEMP_EMPLOYEE_EMAIL_SUBJECT
-        with open(os.path.join(os.path.dirname(__file__), 'signature.png'), 'rb') as file:
-            self.signature_img = file.read()
-        with open(os.path.join(os.path.dirname(__file__), 'template.html'), 'r', encoding='UTF-8') as file:
-            self.html = file.read()
 
     def _send_email(self, sender, to: list, email_content, cc: list = None, bcc: list = None):
         receivers = [item for sublist in (to, cc, bcc) if sublist is not None for item in sublist]
@@ -51,18 +45,24 @@ class Emails(object):
         return execl
 
     def send_temp_employee_email(self, excel_file):
+        sender = config.TEMP_EMPLOYEE_EMAIL_SENDER
+        bcc = config.TEMP_EMPLOYEE_EMAIL_BCC
+        with open(os.path.join(os.path.dirname(__file__), 'signature.png'), 'rb') as file:
+            signature_img = file.read()
+        with open(os.path.join(os.path.dirname(__file__), 'template.html'), 'r', encoding='UTF-8') as file:
+            html = file.read()
         message = MIMEMultipart("alternative")
-        message["Subject"] = self.subject
-        message["From"] = self.sender_email
-        message["To"] = self.sender_email
+        message["Subject"] = config.TEMP_EMPLOYEE_EMAIL_SUBJECT
+        message["From"] = sender
+        message["To"] = sender
         html_part = MIMEMultipart("related")
-        self.html = self.html.replace('${DATE}', config.CST_NOW.strftime('%Y-%m-%d'))
-        self.html = self.html.replace('${IT_SUPPORT_EMAIL}', config.TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX)
-        html_part.attach(MIMEText(self.html, "html"))
-        signature_image = MIMEImage(self.signature_img)
+        html = html.replace('${DATE}', config.CST_NOW.strftime('%Y-%m-%d'))
+        html = html.replace('${IT_SUPPORT_EMAIL}', config.TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX)
+        html_part.attach(MIMEText(html, "html"))
+        signature_image = MIMEImage(signature_img)
         signature_image.add_header('Content-ID', '<signature>')
         html_part.attach(signature_image)
         message.attach(html_part)
         message.attach(self._attach_excel(excel_file))
 
-        self._send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
+        self._send_email(sender=sender, to=[sender], bcc=[bcc], email_content=message)
