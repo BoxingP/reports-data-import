@@ -51,8 +51,8 @@ class Config(object):
     ASSET_REPORT_FILE_PATH = Path(import_report_dir_path, decouple_config('ASSET_REPORT'))
     ASSET_REPORT_SHEET = decouple_config('ASSET_REPORT_SHEET')
 
-    USAGE_REPORT_FILE_PATH = Path(export_report_dir_path,
-                                  decouple_config('USAGE_REPORT_FILE_NAME', default='usage_report.xlsx'))
+    USAGE_REPORT_FILE_NAME = decouple_config('USAGE_REPORT_FILE_NAME', default='usage_report.xlsx')
+    USAGE_REPORT_FILE_PATH = Path(export_report_dir_path, USAGE_REPORT_FILE_NAME)
 
     CST_NOW = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
     cst_now_str = CST_NOW.strftime('%Y%m%d')
