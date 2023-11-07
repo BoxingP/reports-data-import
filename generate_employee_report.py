@@ -5,8 +5,9 @@ import wcwidth
 from databases.asset_database import AssetDatabase
 from databases.employee_database import EmployeeDatabase
 from databases.models import TempEmployee
+from emails.emails import Emails
 from utils.config import config
-from utils.s3 import S3
+from utils.excel_file import ExcelFile
 
 
 def export_dataframe_to_excel(writer, dataframe, sheet_name, string_columns: list = None, set_width_by_value=False):
@@ -104,14 +105,15 @@ def main():
 
     import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager)
     columns_as_str = ['employee_id', 'band', 'manager_id', 'lvl1_manager_id', 'lvl2_manager_id']
-    with pd.ExcelWriter(config.TEMP_EMPLOYEE_REPORT_FILE_PATH, engine='xlsxwriter') as writer:
+    excel = ExcelFile(config.TEMP_EMPLOYEE_REPORT_FILE_NAME, config.TEMP_EMPLOYEE_REPORT_FILE_PATH)
+    with pd.ExcelWriter(excel.path, engine='xlsxwriter') as writer:
         export_dataframe_to_excel(writer, temp_employee_manager, 'temp_employee_info', string_columns=columns_as_str,
                                   set_width_by_value=True)
         export_dataframe_to_excel(writer, added, 'new', string_columns=columns_as_str, set_width_by_value=True)
         export_dataframe_to_excel(writer, deleted, 'deleted', string_columns=columns_as_str, set_width_by_value=True)
         export_dataframe_to_excel(writer, changed, 'changed', string_columns=columns_as_str, set_width_by_value=True)
 
-    S3().upload_files_to_s3(config.EXPORT_REPORT_DIR_PATH, config.AWS_S3_DIRECTORY, del_pre_upload=True)
+    Emails().send_temp_employee_email(excel)
 
 
 if __name__ == '__main__':

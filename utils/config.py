@@ -55,11 +55,17 @@ class Config(object):
                                   decouple_config('USAGE_REPORT_FILE_NAME', default='usage_report.xlsx'))
 
     CST_NOW = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
-    CST_NOW_STR = CST_NOW.strftime('%Y%m%d')
-    TEMP_EMPLOYEE_REPORT_FILE_PATH = Path(export_report_dir_path,
-                                          decouple_config('TEMP_EMPLOYEE_REPORT_FILE_NAME',
-                                                          default=f"temp_employee_report_{CST_NOW_STR}.xlsx"))
-    AWS_S3_DIRECTORY = os.path.join(decouple_config('AWS_S3_PREFIX'), CST_NOW_STR).replace('\\', '/')
+    cst_now_str = CST_NOW.strftime('%Y%m%d')
+    TEMP_EMPLOYEE_REPORT_FILE_NAME = decouple_config('TEMP_EMPLOYEE_REPORT_FILE_NAME',
+                                                     default=f'temp_employee_report_{cst_now_str}.xlsx')
+    TEMP_EMPLOYEE_REPORT_FILE_PATH = Path(export_report_dir_path, TEMP_EMPLOYEE_REPORT_FILE_NAME)
+
+    SMTP_SERVER = decouple_config('SMTP_SERVER')
+    SMTP_PORT = decouple_config('SMTP_PORT', cast=int, default=25)
+    TEMP_EMPLOYEE_EMAIL_SENDER = decouple_config(f'TEMP_EMPLOYEE_EMAIL_SENDER')
+    TEMP_EMPLOYEE_EMAIL_SUBJECT = decouple_config('TEMP_EMPLOYEE_EMAIL_SUBJECT',
+                                                  default=f'{cst_now_str} Temporary Employee Data')
+    TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX = decouple_config(f'TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX')
 
 
 config = Config()

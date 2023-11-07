@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temp Employee Data Email</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #F1F2F2;
+        margin: 0;
+        padding: 0;
+    }
+
+    .email-container {
+        background-color: white;
+        padding: 30px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    hr {
+        border: none;
+        border-top: 2px solid #8E8E8E;
+        margin: 10px 0;
+    }
+
+    .footer {
+        margin-top: 10px;
+        color: #8E8E8E;
+        font-size: 70%;
+    }
+    </style>
+</head>
+
+<body>
+    <table class="email-container">
+        <tr>
+            <td>
+                <p>Hi, there.</p>
+                <p>This is a capture of the temporary employee data on ${DATE}. Please find attached an Excel file that contains detailed info regarding this.</p>
+                <ul>
+                    <li>"temp_employee_info" sheet: includes all data of the temporary employees captured on ${DATE}</li>
+                    <li>"new" sheet: data added in comparison to the previous day</li>
+                    <li>"deleted" sheet: data removed in comparison to the previous day</li>
+                    <li>"changed" sheet: data altered or updated in comparison to the previous day</li>
+                </ul>
+                <p>Please review the attached file at your earliest convenience.</p>
+                <br>
+                <p>Best Regards,<br>China IT Asset Management Team</p>
+                <p><a href="mailto:${IT_SUPPORT_EMAIL}">${IT_SUPPORT_EMAIL}</a> | <a href="https://www.thermofisher.cn/">thermofisher.cn<a></p>
+                <hr>
+                <div class="footer">
+                    <img src="cid:signature" alt="Signature"><br>
+                    <span>&copy; Thermo Fisher Scientific</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
