@@ -14,14 +14,23 @@ def import_temp_employee_manager_mapping(database, table_class, dataframe):
     database.update_or_insert_temp_employee_manager_mapping(table_class, dataframe)
 
 
-def extract_changes(updated_dataframe, origin_dataframe):
-    added_rows = updated_dataframe[~updated_dataframe['employee_id'].isin(origin_dataframe['employee_id'])]
+def get_snapshot_today_rows(row):
+    if row['first_snapshot'] is not None:
+        return row['first_snapshot'].date() == config.CST_NOW.date()
+    return False
+
+
+def extract_changes(updated_dataframe, origin_dataframe, ignore_columns):
+    today_snapshot_df = origin_dataframe[origin_dataframe.apply(get_snapshot_today_rows, axis=1)]
+    added_rows = updated_dataframe[
+        updated_dataframe['employee_id'].isin(today_snapshot_df['employee_id']) | ~updated_dataframe[
+            'employee_id'].isin(origin_dataframe['employee_id'])]
 
     deleted_rows = origin_dataframe[~origin_dataframe['employee_id'].isin(updated_dataframe['employee_id'])]
 
     merged = origin_dataframe.merge(updated_dataframe, on='employee_id', suffixes=('_origin', '_updated'), how='inner')
     columns_to_compare = updated_dataframe.columns.tolist()
-    columns_to_compare.remove('employee_id')
+    columns_to_compare = [column for column in columns_to_compare if column not in ignore_columns]
     for column in columns_to_compare:
         origin_column = merged[f'{column}_origin'].fillna('N/A')
         updated_column = merged[f'{column}_updated'].fillna('N/A')
@@ -62,8 +71,8 @@ def main():
     temp_employee_manager = temp_employee_manager.replace({np.nan: None, pd.NaT: None})
 
     historical_temp_employee_manager = AssetDatabase().get_historical_temp_employee_manager_mapping()
-    historical_temp_employee_manager = historical_temp_employee_manager.drop(['updated_by', 'updated_time'], axis=1)
-    added, deleted, changed = extract_changes(temp_employee_manager, historical_temp_employee_manager)
+    added, deleted, changed = extract_changes(temp_employee_manager, historical_temp_employee_manager,
+                                              ['employee_id', 'first_snapshot'])
 
     import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager)
     columns_as_str = ['employee_id', 'band', 'manager_id', 'lvl1_manager_id', 'lvl2_manager_id']

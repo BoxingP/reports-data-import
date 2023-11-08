@@ -234,16 +234,23 @@ class AssetDatabase(Database):
 
     def update_or_insert_temp_employee_manager_mapping(self, table_class, dataframe):
         ignore_fields = ['updated_time']
-        df = dataframe.replace({np.nan: None, pd.NaT: None})
-        self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields)
+
+        with database_session(self.session) as session:
+            existing_records = session.query(table_class.employee_id, table_class.first_snapshot).all()
+            existing_records = pd.DataFrame(existing_records, columns=['employee_id', 'first_snapshot'])
+            df = dataframe.merge(existing_records, on='employee_id', how='left')
+            df = df.replace({np.nan: None, pd.NaT: None})
+            df['first_snapshot'].fillna(config.CST_NOW, inplace=True)
+            self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields)
 
     def get_historical_temp_employee_manager_mapping(self, day=config.CST_NOW):
         with database_session(self.session) as session:
             results = session.query(TempEmployee).filter(
                 TempEmployee.updated_time >= f"{(day - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')}",
-                TempEmployee.updated_time < f"{day.strftime('%Y-%m-%d 00:00:00')}").all()
+                TempEmployee.updated_time < f"{(day + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')}").all()
             column_names = [col.name for col in TempEmployee.__table__.columns]
             results = [dict(zip(column_names, [getattr(row, col) for col in column_names])) for row in results]
             results = pd.DataFrame(results)
             results = results.replace({np.nan: None, pd.NaT: None})
+            results = results.drop(['updated_by', 'updated_time'], axis=1)
             return results
