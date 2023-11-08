@@ -45,8 +45,8 @@ class Emails(object):
         return execl
 
     def send_temp_employee_email(self, excel_file):
-        sender = config.TEMP_EMPLOYEE_EMAIL_SENDER
-        bcc = config.TEMP_EMPLOYEE_EMAIL_BCC
+        sender = config.TEMP_EMPLOYEE_EMAIL_FROM
+        to = config.TEMP_EMPLOYEE_EMAIL_TO
         with open(os.path.join(os.path.dirname(__file__), 'signature.png'), 'rb') as file:
             signature_img = file.read()
         with open(os.path.join(os.path.dirname(__file__), 'template.html'), 'r', encoding='UTF-8') as file:
@@ -54,7 +54,7 @@ class Emails(object):
         message = MIMEMultipart("alternative")
         message["Subject"] = config.TEMP_EMPLOYEE_EMAIL_SUBJECT
         message["From"] = sender
-        message["To"] = sender
+        message["To"] = ','.join(to)
         html_part = MIMEMultipart("related")
         html = html.replace('${DATE}', config.CST_NOW.strftime('%Y-%m-%d'))
         html = html.replace('${IT_SUPPORT_EMAIL}', config.TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX)
@@ -65,4 +65,4 @@ class Emails(object):
         message.attach(html_part)
         message.attach(self._attach_excel(excel_file))
 
-        self._send_email(sender=sender, to=[sender], bcc=[bcc], email_content=message)
+        self._send_email(sender=sender, to=to, bcc=config.TEMP_EMPLOYEE_EMAIL_BCC, email_content=message)

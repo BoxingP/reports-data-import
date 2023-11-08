@@ -62,8 +62,9 @@ class Config(object):
 
     SMTP_SERVER = decouple_config('SMTP_SERVER')
     SMTP_PORT = decouple_config('SMTP_PORT', cast=int, default=25)
-    TEMP_EMPLOYEE_EMAIL_SENDER = decouple_config('TEMP_EMPLOYEE_EMAIL_SENDER')
-    TEMP_EMPLOYEE_EMAIL_BCC = decouple_config('TEMP_EMPLOYEE_EMAIL_BCC')
+    TEMP_EMPLOYEE_EMAIL_FROM = decouple_config('TEMP_EMPLOYEE_EMAIL_FROM')
+    TEMP_EMPLOYEE_EMAIL_TO = decouple_config('TEMP_EMPLOYEE_EMAIL_TO', cast=lambda x: x.split(','))
+    TEMP_EMPLOYEE_EMAIL_BCC = decouple_config('TEMP_EMPLOYEE_EMAIL_BCC', cast=lambda x: x.split(','))
     TEMP_EMPLOYEE_EMAIL_SUBJECT = decouple_config('TEMP_EMPLOYEE_EMAIL_SUBJECT',
                                                   default=f'{cst_now_str} Temporary Employee Data')
     TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX = decouple_config('TEMP_EMPLOYEE_EMAIL_IT_SUPPORT_MAILBOX')
