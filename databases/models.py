@@ -144,6 +144,7 @@ class TempEmployee(Base):
     lvl2_manager_name = Column(String)
     lvl2_manager_email = Column(String)
     first_snapshot = Column(TIMESTAMP(timezone=True))
+    last_change = Column(TIMESTAMP(timezone=True))
     updated_by = Column(String)
     updated_time = Column(TIMESTAMP(timezone=True), server_default=func.timezone('Asia/Shanghai', func.now()))
 

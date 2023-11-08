@@ -9,9 +9,15 @@ from utils.config import config
 from utils.excel_file import ExcelFile
 
 
-def import_temp_employee_manager_mapping(database, table_class, dataframe):
+def import_temp_employee_manager_mapping(database, table_class, dataframe, changed_rows):
     database.create_table_if_not_exists(table_class)
-    database.update_or_insert_temp_employee_manager_mapping(table_class, dataframe)
+    database.update_or_insert_temp_employee_manager_mapping(table_class, dataframe, changed_rows)
+
+
+def get_change_today_rows(row):
+    if row['last_change'] is not None:
+        return row['last_change'].date() == config.CST_NOW.date()
+    return False
 
 
 def get_snapshot_today_rows(row):
@@ -38,7 +44,10 @@ def extract_changes(updated_dataframe, origin_dataframe, ignore_columns):
     changed_columns = [col for col in merged.columns if '_changed' in col]
     merged['any_changes'] = merged[changed_columns].any(axis=1)
     changed_employee_ids = merged.loc[merged['any_changes'], 'employee_id'].tolist()
-    changed_rows = updated_dataframe[updated_dataframe['employee_id'].isin(changed_employee_ids)]
+    today_change_df = origin_dataframe[origin_dataframe.apply(get_change_today_rows, axis=1)]
+    changed_rows = updated_dataframe[
+        updated_dataframe['employee_id'].isin(today_change_df['employee_id']) | updated_dataframe['employee_id'].isin(
+            changed_employee_ids)]
 
     return added_rows, deleted_rows, changed_rows
 
@@ -72,9 +81,9 @@ def main():
 
     historical_temp_employee_manager = AssetDatabase().get_historical_temp_employee_manager_mapping()
     added, deleted, changed = extract_changes(temp_employee_manager, historical_temp_employee_manager,
-                                              ['employee_id', 'first_snapshot'])
+                                              ['employee_id', 'first_snapshot', 'last_change'])
 
-    import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager)
+    import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager, changed)
     columns_as_str = ['employee_id', 'band', 'manager_id', 'lvl1_manager_id', 'lvl2_manager_id']
     with ExcelFile(config.TEMP_EMPLOYEE_REPORT_FILE_NAME, config.TEMP_EMPLOYEE_REPORT_FILE_PATH) as excel:
         excel.export_dataframe_to_excel(temp_employee_manager, 'temp_employee_info', string_columns=columns_as_str,

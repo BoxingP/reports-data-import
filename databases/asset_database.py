@@ -232,15 +232,18 @@ class AssetDatabase(Database):
             results['serial_nu'] = results['serial_nu'].map(lambda x: x.upper() if isinstance(x, str) else x)
             return results
 
-    def update_or_insert_temp_employee_manager_mapping(self, table_class, dataframe):
+    def update_or_insert_temp_employee_manager_mapping(self, table_class, dataframe, changed_rows):
         ignore_fields = ['updated_time']
 
         with database_session(self.session) as session:
-            existing_records = session.query(table_class.employee_id, table_class.first_snapshot).all()
-            existing_records = pd.DataFrame(existing_records, columns=['employee_id', 'first_snapshot'])
+            existing_records = session.query(table_class.employee_id, table_class.first_snapshot,
+                                             table_class.last_change).all()
+            existing_records = pd.DataFrame(existing_records, columns=['employee_id', 'first_snapshot', 'last_change'])
             df = dataframe.merge(existing_records, on='employee_id', how='left')
             df = df.replace({np.nan: None, pd.NaT: None})
             df['first_snapshot'].fillna(config.CST_NOW, inplace=True)
+            rows = df[df['employee_id'].isin(changed_rows['employee_id'])]
+            df.loc[rows.index, 'last_change'] = config.CST_NOW
             self.update_or_insert_data(table_class, df, column_mapping=None, ignore_fields=ignore_fields)
 
     def get_historical_temp_employee_manager_mapping(self, day=config.CST_NOW):
