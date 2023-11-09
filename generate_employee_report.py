@@ -26,27 +26,28 @@ def get_snapshot_today_rows(row):
     return False
 
 
-def extract_changes(updated_dataframe, origin_dataframe, ignore_columns):
+def extract_changes(updated_dataframe, origin_dataframe, pk_column, ignore_columns: list):
     today_snapshot_df = origin_dataframe[origin_dataframe.apply(get_snapshot_today_rows, axis=1)]
     added_rows = updated_dataframe[
-        updated_dataframe['employee_id'].isin(today_snapshot_df['employee_id']) | ~updated_dataframe[
-            'employee_id'].isin(origin_dataframe['employee_id'])]
+        updated_dataframe[pk_column].isin(today_snapshot_df[pk_column]) | ~updated_dataframe[pk_column].isin(
+            origin_dataframe[pk_column])]
 
-    deleted_rows = origin_dataframe[~origin_dataframe['employee_id'].isin(updated_dataframe['employee_id'])]
+    deleted_rows = origin_dataframe[~origin_dataframe[pk_column].isin(updated_dataframe[pk_column])]
+    deleted_rows = deleted_rows.drop(ignore_columns, axis=1)
 
-    merged = origin_dataframe.merge(updated_dataframe, on='employee_id', suffixes=('_origin', '_updated'), how='inner')
+    merged = origin_dataframe.merge(updated_dataframe, on=pk_column, suffixes=('_origin', '_updated'), how='inner')
     columns_to_compare = updated_dataframe.columns.tolist()
-    columns_to_compare = [column for column in columns_to_compare if column not in ignore_columns]
+    columns_to_compare = [column for column in columns_to_compare if column not in (ignore_columns + [pk_column])]
     for column in columns_to_compare:
         origin_column = merged[f'{column}_origin'].fillna('N/A')
         updated_column = merged[f'{column}_updated'].fillna('N/A')
         merged[f'{column}_changed'] = origin_column != updated_column
     changed_columns = [col for col in merged.columns if '_changed' in col]
     merged['any_changes'] = merged[changed_columns].any(axis=1)
-    changed_employee_ids = merged.loc[merged['any_changes'], 'employee_id'].tolist()
+    changed_employee_ids = merged.loc[merged['any_changes'], pk_column].tolist()
     today_change_df = origin_dataframe[origin_dataframe.apply(get_change_today_rows, axis=1)]
     changed_rows = updated_dataframe[
-        updated_dataframe['employee_id'].isin(today_change_df['employee_id']) | updated_dataframe['employee_id'].isin(
+        updated_dataframe[pk_column].isin(today_change_df[pk_column]) | updated_dataframe[pk_column].isin(
             changed_employee_ids)]
 
     return added_rows, deleted_rows, changed_rows
@@ -81,7 +82,7 @@ def main():
 
     historical_temp_employee_manager = AssetDatabase().get_historical_temp_employee_manager_mapping()
     added, deleted, changed = extract_changes(temp_employee_manager, historical_temp_employee_manager,
-                                              ['employee_id', 'first_snapshot', 'last_change'])
+                                              'employee_id', ['first_snapshot', 'last_change'])
 
     import_temp_employee_manager_mapping(AssetDatabase(), TempEmployee, temp_employee_manager, changed)
     columns_as_str = ['employee_id', 'band', 'manager_id', 'lvl1_manager_id', 'lvl2_manager_id']
